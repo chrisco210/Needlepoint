@@ -247,6 +247,58 @@ The web app stored one JSON document per item with an `id` and a `kind` of `patt
 
 How to get the export out of claude.ai is still open.
 
+## Running tests
+
+The project has two test targets:
+
+- `NeedlepointTests` holds unit tests written with Swift Testing. They use an in-memory SwiftData store, so they never touch saved data.
+- `NeedlepointUITests` holds UI tests written with XCTest. They launch the app with `-ui-testing`, which gives it an empty in-memory store. Each test relaunches the app, so this target is much slower than the unit tests.
+
+In Xcode, ⌘U runs both targets. To run one test or one suite, click the diamond next to it in the editor or the Test navigator.
+
+From the command line, run tests from the repository root. These commands leave out `-derivedDataPath`, so `xcodebuild` uses the same build cache as Xcode and doesn't rebuild everything from scratch.
+
+Set the destination and turn off parallel testing once per shell:
+
+```sh
+DEST='platform=iOS Simulator,name=iPad Pro 11-inch (M5)'
+NOCLONE='-parallel-testing-enabled NO'
+```
+
+With parallel testing on, `xcodebuild` creates and boots copies of the simulator ("Clone 1 of ..."), even for the unit tests alone. Each clone boots from cold before any test runs. Running tests is faster when the simulator is already booted, for example because you left it open after running the app from Xcode.
+
+While working on a change, run only the unit tests:
+
+```sh
+xcodebuild test -scheme Needlepoint -destination "$DEST" $NOCLONE -only-testing:NeedlepointTests
+```
+
+To run one suite or one test, name it after the target:
+
+```sh
+xcodebuild test -scheme Needlepoint -destination "$DEST" $NOCLONE \
+  -only-testing:NeedlepointTests/StashThreadTests
+xcodebuild test -scheme Needlepoint -destination "$DEST" $NOCLONE \
+  -only-testing:NeedlepointUITests/ShellUITests/testSeeWhatsReadySwitchesToTheReadyTab
+```
+
+To rerun tests several times without changing code, build once and then skip the build step:
+
+```sh
+xcodebuild build-for-testing -scheme Needlepoint -destination "$DEST"
+xcodebuild test-without-building -scheme Needlepoint -destination "$DEST" $NOCLONE -only-testing:NeedlepointTests
+```
+
+Before committing, run both targets:
+
+```sh
+xcodebuild test -scheme Needlepoint -destination "$DEST" $NOCLONE
+```
+
+`xcodebuild` prints a lot of log noise. To see which tests failed and why, open the newest result bundle under `~/Library/Developer/Xcode/DerivedData/Needlepoint-*/Logs/Test/` in Xcode, or read it with `xcrun xcresulttool get test-results tests --path <bundle>`.
+
+Add `-quiet` to print only warnings, errors and the result.
+
 ## Open decisions
 
 1. Whether to keep visionOS in the supported destinations.

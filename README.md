@@ -15,7 +15,7 @@ The app is written in Swift with SwiftUI. It replaces an earlier single-file web
 - [ ] Ready to stitch tab
 - [ ] Folder image editor and folder rename
 - [ ] iCloud sync (after the first release)
-- [ ] "Read threads from pattern"
+- [ ] "Read threads from pattern" (planned, see below)
 - [ ] Import of data exported from the web app
 - [ ] App icon, launch screen, TestFlight build
 
@@ -149,7 +149,6 @@ A sheet with a `Form`:
 - Status and mesh pickers.
 - Pattern file: attach a PDF or image up to 20 MB. Replacing the file deletes the old one.
 - Cover photo: choose a photo, use page 1 of the PDF (shown only when the file is a PDF), or remove. When no cover is set and the file is an image, the card uses the file itself.
-- "Read threads from pattern" (see below).
 - Thread list. Each row has brand (with suggestions from the brand list below), number, color name or where it's used, and quantity (minimum 1), plus a delete button. Under each row, show "In stash (N)" in green, or "Need N more" (with "you have M" when M > 0) in orange. "Add thread" appends a row pre-filled with the previous row's brand and focuses the number field.
 - Notes.
 - Save, Cancel, and Delete (existing patterns only, with confirmation; deleting also removes the file and cover).
@@ -157,38 +156,6 @@ A sheet with a `Form`:
 On save, drop thread rows where brand, code and name are all empty, trim fields, and clamp quantities to at least 1.
 
 Built-in brand suggestions: DMC Pearl Cotton #3, DMC Pearl Cotton #5, DMC Floss, Silk & Ivory, Splendor, Vineyard Silk, Planet Earth Fiber, Rainbow Gallery Neon Rays, Rainbow Gallery Fyre Werks, Kreinik #12 Braid, Pepper Pot Silk, Appleton Wool, Paternayan, Watercolours, Silk Lamé Braid, Entice, Bravo!. Also suggest every brand already in the stash.
-
-### Read threads from pattern
-
-Sends the pattern file to Claude and adds the threads it finds to the editor's thread list for the user to check before saving.
-
-1. Get the file: the one just picked in the editor, or the saved file.
-2. For a PDF, extract text from up to the first 40 pages with PDFKit, capped at 150,000 characters, each page prefixed with `--- Page N ---`. Score each page by how many thread-related words it contains (`dmc`, `silk`, `thread`, `floss`, `kreinik`, `braid`, `wool`, `pearl`, `perle`, `appleton`, `splendor`, `neon`, `ivory`, `planet`, `vineyard`, `color`/`colour`, `stitch guide`, `#` followed by a digit). Render the top-scoring pages as JPEG images: 3 pages if the PDF has more than 300 characters of real text, otherwise 6.
-3. For an image file, send the image.
-4. Send the text and images to Claude with the prompt below. Ask for JSON only.
-5. Parse a JSON array of `{brand, code, name, qty}` (also accept `{threads: [...]}`). Trim and truncate fields (brand 80, code 40, name 120 characters), round qty and clamp it to at least 1, skip entries with no brand and no code, and skip any whose key is already in the list.
-6. Append new rows and highlight them until the sheet closes. Report "Added N threads", "Every thread Claude found is already listed", or "Claude didn't find any threads in this file".
-
-The prompt, carried over from the web app:
-
-```
-You are reading a needlepoint pattern or stitch guide ("<file name>"). List every thread or fiber it calls for.
-Reply with only a JSON array of objects: {"brand": string, "code": string, "name": string, "qty": number}.
-- brand: the maker and fiber line as written, e.g. "DMC Pearl Cotton #5", "Silk & Ivory", "Kreinik #12 Braid", "Rainbow Gallery Neon Rays".
-- When a thread is one of these brands, spell the brand exactly like this: <up to 60 brands from the stash and current rows>.
-- code: the color number exactly as written (keep leading zeros and letters).
-- name: the color name, or briefly where it is used if no color name is given.
-- qty: number of cards, skeins or spools called for; 1 if not stated.
-- One entry per distinct brand + color number; add up quantities for repeats. Ignore canvas, needles and other supplies.
-- If the pattern lists no threads, reply [].
-Example: [{"brand":"Silk & Ivory","code":"01","name":"Snow","qty":1}]
-<N> page image(s) of the pattern are attached; read color keys and legends in them.
-
-Text extracted from the PDF:
-<text>
-```
-
-The UI shows progress ("Opening the pattern", "Reading the PDF", "Looking at page N", "Claude is reading the thread list, this can take up to a minute") and a Stop button that cancels the Swift `Task`. Closing the editor also cancels it. Map failures to plain messages: no network, rate limit, unreadable JSON, no threads found, image rejected, pattern too large, password-protected or broken PDF.
 
 ### WIP tab
 
@@ -207,7 +174,7 @@ Candidates are patterns that are not Finished or Needs finishing. A toggle, on b
 
 - Ready to stitch: every listed thread is covered by the stash. Cards have "Start stitching" (sets Stitching), or read "Already on the needle".
 - Almost there: missing one or two threads. Cards list what's still needed. Sorted by number missing, then the standard order.
-- A footnote counts patterns with no threads listed, which are left out, and suggests adding threads or using "Read threads from pattern".
+- A footnote counts patterns with no threads listed, which are left out, and suggests adding threads.
 
 The tab badge counts patterns in the Ready section.
 
@@ -237,6 +204,21 @@ Empty state: "Nothing to buy". Its subtitle says the stash covers every active p
 
 - Rename folder: sets the designer on every pattern in the folder. Renaming to another folder's name merges the two. The folder's custom style moves to the new key unless the target already has one, in which case the old style is deleted.
 - Edit folder image: choose or remove an image; choose fit, either "Show whole image (best for logos)" or "Fill the tile"; choose a background color from white, `#f6e4ec`, `#fbf3e2`, `#e3eef6`, `#7a1f4f`, `#221b26`, or a custom `ColorPicker` color. PNG, GIF, WebP and SVG images default to "Show whole image".
+
+### Planned: read threads from pattern
+
+Not in the first release. We'll pick the service that reads the pattern later. `index.html` has the web app's version for reference.
+
+Requirements:
+
+- A "Read threads from pattern" button in the pattern editor. It works on the file just picked in the editor or on the saved file.
+- For a PDF, extract text from up to the first 40 pages with PDFKit, capped at 150,000 characters, with each page prefixed by `--- Page N ---`. Score each page by how many thread-related words it contains (`dmc`, `silk`, `thread`, `fib`, `floss`, `kreinik`, `braid`, `wool`, `pearl`, `perle`, `appleton`, `splendor`, `neon`, `ivory`, `planet`, `vineyard`, `color`/`colour`, `stitch guide`, `#` followed by a digit). Render the top-scoring pages as JPEG images: 3 pages if the PDF has more than 300 characters of real text, otherwise 6.
+- For an image file, use the image itself.
+- The result is a list of threads, each with brand, code, name and qty. Trim and truncate fields (brand 80, code 40, name 120 characters), round qty and clamp it to at least 1, skip entries with no brand and no code, and skip any whose key is already in the list.
+- Append new rows to the editor's thread list and highlight them until the sheet closes, so the user can check them before saving. Report "Added N threads", "Every thread found is already listed", or "No threads found in this file".
+- Show progress ("Opening the pattern", "Reading the PDF", "Looking at page N") and a Stop button that cancels the Swift `Task`. Closing the editor also cancels it.
+- Show plain messages for failures, including a password-protected or broken PDF.
+- When this ships, the Ready to stitch footnote should also suggest this button for patterns with no threads listed.
 
 ## Look and feel
 

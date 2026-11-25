@@ -1,17 +1,6 @@
 import SwiftUI
 
 // Each tab shows the web app's empty state until its feature is built.
-// Count badges for the pattern-based tabs come with the Pattern model.
-
-struct PatternsTab: View {
-    var body: some View {
-        TabScreen(title: AppTab.patterns.title, showsSummary: true) {
-            EmptyStateView(
-                title: "Your pattern library is empty",
-                message: "Add your first canvas or chart. Upload the PDF or a photo, then list the threads it calls for.")
-        }
-    }
-}
 
 struct WIPTab: View {
     let showReady: () -> Void

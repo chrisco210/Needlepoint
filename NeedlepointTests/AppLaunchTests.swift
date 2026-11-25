@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 import Testing
 @testable import Needlepoint
@@ -37,6 +38,35 @@ struct AppLaunchTests {
         context.insert(FolderStyle(key: ""))
         #expect(try context.fetch(FetchDescriptor<Pattern>()).count == 1)
         #expect(try context.fetch(FetchDescriptor<FolderStyle>()).count == 1)
+    }
+
+    @Test func seedPatternsAddsThreePatternsInTwoFolders() throws {
+        let launch = AppLaunch(arguments: ["Needlepoint", "-ui-testing", "-ui-testing-seed-patterns"])
+        #expect(launch.seedsPatterns)
+        let container = try launch.makeContainer()
+        try withExtendedLifetime(container) {
+            let patterns = try container.mainContext.fetch(FetchDescriptor<Pattern>())
+            #expect(patterns.count == 3)
+            #expect(Set(patterns.map(\.folderKey)) == ["kirk & bradley", ""])
+        }
+    }
+
+    @Test func seedPatternsIsIgnoredWithoutUITesting() {
+        #expect(!AppLaunch(arguments: ["Needlepoint", "-ui-testing-seed-patterns"]).seedsPatterns)
+    }
+
+    /// Settings like the Patterns tab's Folders or All choice persist between
+    /// launches, so UI tests get their own defaults, emptied at every launch.
+    @Test func uiTestingUsesFreshDefaults() throws {
+        let first = AppLaunch(arguments: ["Needlepoint", "-ui-testing"]).defaults
+        #expect(first !== UserDefaults.standard)
+        first.set("all", forKey: "patternsMode")
+        let second = AppLaunch(arguments: ["Needlepoint", "-ui-testing"]).defaults
+        #expect(second.string(forKey: "patternsMode") == nil)
+    }
+
+    @Test func normalLaunchUsesStandardDefaults() {
+        #expect(AppLaunch(arguments: ["Needlepoint"]).defaults === UserDefaults.standard)
     }
 
     /// Seeding writes data, so it must never run against the user's real store.

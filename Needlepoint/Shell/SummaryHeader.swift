@@ -5,9 +5,10 @@ import SwiftUI
 /// printed over a canvas-mesh pattern.
 struct SummaryHeader: View {
     @Query private var stash: [StashThread]
+    @Query private var patterns: [Pattern]
 
-    // Patterns and the shopping list don't exist yet, so these totals are 0.
-    private let patternCount = 0
+    private var patternCount: Int { patterns.count }
+    // The shopping list doesn't exist yet, so this total is 0.
     private let toBuyCount = 0
 
     private var threadsOnHand: Int { stash.reduce(0) { $0 + $1.qty } }

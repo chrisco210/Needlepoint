@@ -5,12 +5,14 @@ struct RootView: View {
     @State private var selection: AppTab = .patterns
     @State private var toasts = ToastCenter()
     @Query private var stash: [StashThread]
+    @Query private var patterns: [Pattern]
 
     var body: some View {
         TabView(selection: $selection) {
             Tab(AppTab.patterns.tabLabel, systemImage: AppTab.patterns.systemImage, value: .patterns) {
                 PatternsTab()
             }
+            .badge(patterns.count)
             Tab(AppTab.wip.tabLabel, systemImage: AppTab.wip.systemImage, value: .wip) {
                 WIPTab(showReady: { selection = .ready })
             }

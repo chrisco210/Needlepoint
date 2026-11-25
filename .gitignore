@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+
+# Xcode per-user state (window layout, breakpoints, scheme choices)
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Build output
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+# Package.resolved is committed so everyone builds the same dependency versions.
+
+# CocoaPods and Carthage, if ever added
+Pods/
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Local secrets and config
+*.local.xcconfig
+.env

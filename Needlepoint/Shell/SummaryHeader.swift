@@ -7,9 +7,12 @@ struct SummaryHeader: View {
     @Query private var stash: [StashThread]
     @Query private var patterns: [Pattern]
 
+    @AppStorage(Preferences.shoppingIncludesWishlist) private var shoppingIncludesWishlist = false
+
     private var patternCount: Int { patterns.count }
-    // The shopping list doesn't exist yet, so this total is 0.
-    private let toBuyCount = 0
+    private var toBuyCount: Int {
+        ShoppingList.totalToBuy(ShoppingList.make(patterns, stash: stash, includeWishlist: shoppingIncludesWishlist))
+    }
 
     private var threadsOnHand: Int { stash.reduce(0) { $0 + $1.qty } }
 

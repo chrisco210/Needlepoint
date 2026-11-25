@@ -62,7 +62,8 @@ private struct FolderArt: View {
             mosaic(folder.coverImages.compactMap(UIImage.init(data:)))
         } else {
             ZStack {
-                Color.blush
+                // A background chosen in "Edit folder image" shows even without an image.
+                style.map { Color(swatch: $0.background) } ?? Color.blush
                 Image(systemName: "folder.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(Color.plum)

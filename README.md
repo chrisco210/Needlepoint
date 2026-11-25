@@ -6,14 +6,16 @@ The app is written in Swift with SwiftUI. It replaces an earlier single-file web
 
 ## Status
 
-- [ ] Data model in SwiftData
-- [ ] Patterns tab with designer folders
-- [ ] Pattern editor (fields, thread list, file and cover photo)
-- [ ] Thread stash tab, including paste-a-list import
-- [ ] Shopping list tab
-- [ ] WIP tab
-- [ ] Ready to stitch tab
-- [ ] Folder image editor and folder rename
+- [x] Data model in SwiftData
+- [x] Patterns tab with designer folders
+- [x] Pattern editor (fields, thread list, file and cover photo)
+- [x] Thread stash tab, including paste-a-list import
+- [x] Shopping list tab
+- [x] WIP tab
+- [x] Ready to stitch tab
+- [x] Folder image editor and folder rename
+- [ ] Camera as a cover photo source (needs a camera usage description in the build settings)
+- [ ] Bundle the DM Serif Display and Nunito Sans fonts (the app uses the system font until then)
 - [ ] iCloud sync (after the first release)
 - [ ] "Read threads from pattern" (planned, see below)
 - [ ] Import of data exported from the web app
@@ -131,7 +133,7 @@ Folders mode:
 - Shows one tile per designer, sorted by name, with "No designer" last.
 - Each tile shows the pattern count and how many are in progress (Stitching or Needs finishing). With a status filter active, it shows "N of M patterns" and hides folders with no matches.
 - The tile image is the folder's custom image if set. Otherwise it is a mosaic of up to four pattern covers. With no covers, it shows a folder glyph with the designer's initial.
-- Tapping a folder pushes a screen with that designer's patterns. That screen has "Rename folder" (not for "No designer"), "Edit folder image", and "Add to this folder" (opens the pattern editor with the designer pre-filled).
+- Tapping a folder pushes a screen with that designer's patterns. That screen has "Add to this folder" (opens the pattern editor with the designer pre-filled) and a "Folder options" menu with "Rename folder" (not for "No designer") and "Edit folder image". The menu keeps the toolbar from overflowing, which would hide "Add to this folder" behind "More".
 - Typing a search in Folders mode at the top level shows matching patterns across all designers, with a note saying so.
 
 Pattern cards (used on every tab):

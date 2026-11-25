@@ -15,6 +15,9 @@ struct PatternsTab: View {
     @State private var query = ""
     @State private var statusFilter: PatternStatus?
     @State private var editorRequest: PatternEditorRequest?
+    /// Folder keys pushed onto the stack. Renaming a folder changes its key,
+    /// so the folder screen replaces its entry here.
+    @State private var path: [String] = []
 
     private let columns = [GridItem(.adaptive(minimum: 220), spacing: 16)]
 
@@ -23,7 +26,7 @@ struct PatternsTab: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     SummaryHeader()
@@ -54,7 +57,12 @@ struct PatternsTab: View {
                 }
             }
             .navigationDestination(for: String.self) { key in
-                FolderScreen(key: key, statusFilter: statusFilter) { editorRequest = $0 }
+                FolderScreen(
+                    key: key, statusFilter: statusFilter,
+                    openEditor: { editorRequest = $0 },
+                    onRenamed: { newKey in
+                        if let index = path.lastIndex(of: key) { path[index] = newKey }
+                    })
             }
             .sheet(item: $editorRequest) { request in
                 PatternEditor(request: request)
@@ -120,9 +128,18 @@ struct FolderScreen: View {
     let key: String
     let statusFilter: PatternStatus?
     let openEditor: (PatternEditorRequest) -> Void
+    let onRenamed: (String) -> Void
 
     @Query private var patterns: [Pattern]
     @Query private var stash: [StashThread]
+    @Query private var folderStyles: [FolderStyle]
+    @Environment(\.modelContext) private var context
+    @Environment(ToastCenter.self) private var toasts
+
+    @State private var renaming = false
+    @State private var newName = ""
+    @State private var renameError: String?
+    @State private var editingImage = false
 
     var body: some View {
         let inFolder = patterns.filter { $0.folderKey == key }
@@ -141,13 +158,53 @@ struct FolderScreen: View {
         .background(Color.background)
         .navigationTitle(name)
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItemGroup(placement: .primaryAction) {
+                // One menu for the folder actions, because three labeled
+                // buttons overflow and hide "Add to this folder" behind "More".
+                Menu {
+                    if FolderRename.canRename(folderKey: key) {
+                        Button("Rename folder", systemImage: "pencil") {
+                            newName = name
+                            renaming = true
+                        }
+                    }
+                    Button("Edit folder image", systemImage: "photo") { editingImage = true }
+                } label: {
+                    Label("Folder options", systemImage: "ellipsis.circle")
+                }
                 // The "No designer" folder's key is empty, so its new patterns get no designer.
                 Button("Add to this folder", systemImage: "plus") {
                     openEditor(.new(designer: key.isEmpty ? "" : name))
                 }
                 .labelStyle(.titleAndIcon)
             }
+        }
+        .alert("Rename folder", isPresented: $renaming) {
+            TextField("Designer", text: $newName)
+            Button("Cancel", role: .cancel) {}
+            Button("Rename") { rename() }
+        } message: {
+            Text("Every pattern in this folder gets the new designer name. Using another folder's name merges the two.")
+        }
+        .alert("Couldn't rename the folder", isPresented: Binding(get: { renameError != nil }, set: { if !$0 { renameError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(renameError ?? "")
+        }
+        .sheet(isPresented: $editingImage) {
+            FolderImageEditor(folderKey: key, folderName: name, style: folderStyles.first { $0.key == key })
+        }
+    }
+
+    private func rename() {
+        do {
+            let newKey = try FolderRename.rename(folderKey: key, to: newName, patterns: patterns, in: context)
+            toasts.show(FolderRename.toast)
+            if newKey != key { onRenamed(newKey) }
+        } catch FolderRename.RenameError.emptyName {
+            renameError = "Enter a designer name."
+        } catch {
+            renameError = "Try again."
         }
     }
 }

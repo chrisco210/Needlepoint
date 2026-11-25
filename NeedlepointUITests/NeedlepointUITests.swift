@@ -1,7 +1,6 @@
 import XCTest
 
-/// Drives the app shell. Every launch passes `-ui-testing` so the app uses an
-/// empty in-memory store instead of whatever is saved in the simulator.
+/// Drives the app shell.
 final class ShellUITests: XCTestCase {
     private let tabLabels = ["Patterns", "WIP", "Ready", "Stash", "Shopping"]
 
@@ -9,27 +8,11 @@ final class ShellUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    @MainActor
-    private func launch(_ extraArguments: [String] = []) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing"] + extraArguments
-        app.launch()
-        return app
-    }
-
-    @MainActor
-    private func open(_ label: String, in app: XCUIApplication) {
-        let button = app.buttons[label].firstMatch
-        XCTAssertTrue(button.waitForExistence(timeout: 5), "No tab button named \(label)")
-        button.tap()
-        XCTAssertTrue(button.isSelected, "Couldn't select the \(label) tab")
-    }
-
     /// The iPad tab bar sits at the top of the screen. When the labels don't
     /// fit, it scrolls behind a "Next Page" arrow and hides tabs off screen.
     @MainActor
     func testEveryTabFitsInTheTabBar() {
-        let app = launch()
+        let app = XCUIApplication.launchForTesting()
         XCTAssertTrue(app.buttons["Patterns"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Next Page"].exists, "The tab bar overflows")
         for label in tabLabels {
@@ -39,7 +22,7 @@ final class ShellUITests: XCTestCase {
 
     @MainActor
     func testAppStartsOnPatternsWithTheSummaryBand() {
-        let app = launch()
+        let app = XCUIApplication.launchForTesting()
         XCTAssertTrue(app.staticTexts["Stitch Stash"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Your pattern library is empty"].exists)
         XCTAssertEqual(app.staticTexts["summary.patterns"].label, "0 patterns")
@@ -49,7 +32,7 @@ final class ShellUITests: XCTestCase {
 
     @MainActor
     func testEveryTabShowsItsEmptyState() {
-        let app = launch()
+        let app = XCUIApplication.launchForTesting()
         let emptyTitles = [
             "Patterns": "Your pattern library is empty",
             "WIP": "Nothing on the needle",
@@ -58,7 +41,7 @@ final class ShellUITests: XCTestCase {
             "Shopping": "Nothing to buy",
         ]
         for label in tabLabels {
-            open(label, in: app)
+            app.openTab(label)
             XCTAssertTrue(
                 app.staticTexts[emptyTitles[label]!].waitForExistence(timeout: 5),
                 "\(label) didn't show its empty state")
@@ -67,8 +50,8 @@ final class ShellUITests: XCTestCase {
 
     @MainActor
     func testSeeWhatsReadySwitchesToTheReadyTab() {
-        let app = launch()
-        open("WIP", in: app)
+        let app = XCUIApplication.launchForTesting()
+        app.openTab("WIP")
         let button = app.buttons["See what's ready"]
         XCTAssertTrue(button.waitForExistence(timeout: 5))
         button.tap()
@@ -78,7 +61,7 @@ final class ShellUITests: XCTestCase {
     @MainActor
     func testThreadsOnHandSumsTheStash() {
         // The seed holds two threads with quantities 2 and 3.
-        let app = launch(["-ui-testing-seed-stash"])
+        let app = XCUIApplication.launchForTesting(["-ui-testing-seed-stash"])
         let stat = app.staticTexts["summary.threadsOnHand"]
         XCTAssertTrue(stat.waitForExistence(timeout: 5))
         XCTAssertEqual(stat.label, "5 threads on hand")

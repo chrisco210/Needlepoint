@@ -50,9 +50,9 @@ struct SummaryHeader: View {
 
     private var stats: some View {
         HStack(spacing: 22) {
-            Stat(value: patternCount, label: "patterns")
-            Stat(value: threadsOnHand, label: "threads on hand")
-            Stat(value: toBuyCount, label: "to buy")
+            Stat(value: patternCount, label: "patterns", id: "summary.patterns")
+            Stat(value: threadsOnHand, label: "threads on hand", id: "summary.threadsOnHand")
+            Stat(value: toBuyCount, label: "to buy", id: "summary.toBuy")
         }
     }
 }
@@ -60,6 +60,7 @@ struct SummaryHeader: View {
 private struct Stat: View {
     let value: Int
     let label: String
+    let id: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -70,7 +71,10 @@ private struct Stat: View {
                 .font(.appBody(13, relativeTo: .caption))
                 .opacity(0.85)
         }
+        // Read as one phrase ("5 threads on hand") instead of "5, threads on hand".
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(value) \(label)")
+        .accessibilityIdentifier(id)
     }
 }
 

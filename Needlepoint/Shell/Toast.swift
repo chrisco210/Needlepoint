@@ -4,14 +4,20 @@ import SwiftUI
 /// app for about two seconds. Views get it from the environment.
 @Observable
 final class ToastCenter {
+    let duration: Duration
     private(set) var message: String?
     private var dismissal: Task<Void, Never>?
 
+    init(duration: Duration = .seconds(2)) {
+        self.duration = duration
+    }
+
+    /// Shows `message`, replacing any current one and restarting the timer.
     func show(_ message: String) {
         self.message = message
         dismissal?.cancel()
-        dismissal = Task {
-            try? await Task.sleep(for: .seconds(2))
+        dismissal = Task { [duration] in
+            try? await Task.sleep(for: duration)
             guard !Task.isCancelled else { return }
             self.message = nil
         }

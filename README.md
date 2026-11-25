@@ -39,11 +39,15 @@ The web app's backend plan (custom auth, database, blob storage, server function
 
 A `TabView` with five tabs. On iPad, use the sidebar-adaptable tab style so the tabs become a sidebar in landscape.
 
-1. Patterns
-2. WIP
-3. Ready to stitch
-4. Thread stash
-5. Shopping list
+| Tab label | Screen title    |
+| --------- | --------------- |
+| Patterns  | Patterns        |
+| WIP       | WIP             |
+| Ready     | Ready to stitch |
+| Stash     | Thread stash    |
+| Shopping  | Shopping list   |
+
+The tab bar uses the short labels because the five full names don't fit in the iPad's top tab bar in portrait. When they overflow, iPadOS hides the last tabs behind a "Next Page" arrow. Each screen's navigation title uses the full name.
 
 Each tab shows a count badge: the number of patterns, works in progress, ready patterns, distinct stash threads, and shopping-list lines. Hide the badge when the count is zero.
 

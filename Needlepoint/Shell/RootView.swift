@@ -8,20 +8,20 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $selection) {
-            Tab(AppTab.patterns.title, systemImage: AppTab.patterns.systemImage, value: .patterns) {
+            Tab(AppTab.patterns.tabLabel, systemImage: AppTab.patterns.systemImage, value: .patterns) {
                 PatternsTab()
             }
-            Tab(AppTab.wip.title, systemImage: AppTab.wip.systemImage, value: .wip) {
+            Tab(AppTab.wip.tabLabel, systemImage: AppTab.wip.systemImage, value: .wip) {
                 WIPTab(showReady: { selection = .ready })
             }
-            Tab(AppTab.ready.title, systemImage: AppTab.ready.systemImage, value: .ready) {
+            Tab(AppTab.ready.tabLabel, systemImage: AppTab.ready.systemImage, value: .ready) {
                 ReadyTab()
             }
-            Tab(AppTab.stash.title, systemImage: AppTab.stash.systemImage, value: .stash) {
+            Tab(AppTab.stash.tabLabel, systemImage: AppTab.stash.systemImage, value: .stash) {
                 StashTab()
             }
             .badge(stash.count)
-            Tab(AppTab.shopping.title, systemImage: AppTab.shopping.systemImage, value: .shopping) {
+            Tab(AppTab.shopping.tabLabel, systemImage: AppTab.shopping.systemImage, value: .shopping) {
                 ShoppingTab()
             }
         }

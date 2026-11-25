@@ -3,7 +3,7 @@ import XCTest
 /// Drives the app shell. Every launch passes `-ui-testing` so the app uses an
 /// empty in-memory store instead of whatever is saved in the simulator.
 final class ShellUITests: XCTestCase {
-    private let tabTitles = ["Patterns", "WIP", "Ready to stitch", "Thread stash", "Shopping list"]
+    private let tabLabels = ["Patterns", "WIP", "Ready", "Stash", "Shopping"]
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -17,22 +17,24 @@ final class ShellUITests: XCTestCase {
         return app
     }
 
-    /// On an iPad in portrait the five titles don't fit in the top tab bar,
-    /// which scrolls behind a "Next Page" arrow. Page forward until the tab
-    /// is selected, the way a user would.
     @MainActor
-    private func open(_ title: String, in app: XCUIApplication) {
-        let button = app.buttons[title].firstMatch
-        XCTAssertTrue(button.waitForExistence(timeout: 5), "No tab button named \(title)")
+    private func open(_ label: String, in app: XCUIApplication) {
+        let button = app.buttons[label].firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 5), "No tab button named \(label)")
         button.tap()
-        let nextPage = app.buttons["Next Page"]
-        var pages = 0
-        while !button.isSelected, nextPage.exists, pages < 3 {
-            nextPage.tap()
-            button.tap()
-            pages += 1
+        XCTAssertTrue(button.isSelected, "Couldn't select the \(label) tab")
+    }
+
+    /// The iPad tab bar sits at the top of the screen. When the labels don't
+    /// fit, it scrolls behind a "Next Page" arrow and hides tabs off screen.
+    @MainActor
+    func testEveryTabFitsInTheTabBar() {
+        let app = launch()
+        XCTAssertTrue(app.buttons["Patterns"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Next Page"].exists, "The tab bar overflows")
+        for label in tabLabels {
+            XCTAssertTrue(app.buttons[label].firstMatch.isHittable, "\(label) isn't visible in the tab bar")
         }
-        XCTAssertTrue(button.isSelected, "Couldn't select the \(title) tab")
     }
 
     @MainActor
@@ -51,15 +53,15 @@ final class ShellUITests: XCTestCase {
         let emptyTitles = [
             "Patterns": "Your pattern library is empty",
             "WIP": "Nothing on the needle",
-            "Ready to stitch": "No patterns yet",
-            "Thread stash": "No threads in your stash yet",
-            "Shopping list": "Nothing to buy",
+            "Ready": "No patterns yet",
+            "Stash": "No threads in your stash yet",
+            "Shopping": "Nothing to buy",
         ]
-        for title in tabTitles {
-            open(title, in: app)
+        for label in tabLabels {
+            open(label, in: app)
             XCTAssertTrue(
-                app.staticTexts[emptyTitles[title]!].waitForExistence(timeout: 5),
-                "\(title) didn't show its empty state")
+                app.staticTexts[emptyTitles[label]!].waitForExistence(timeout: 5),
+                "\(label) didn't show its empty state")
         }
     }
 

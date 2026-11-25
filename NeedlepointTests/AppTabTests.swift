@@ -2,7 +2,11 @@ import Testing
 @testable import Needlepoint
 
 struct AppTabTests {
-    @Test func tabsAreInReadmeOrderWithReadmeTitles() {
+    @Test func tabLabelsAreShortAndInReadmeOrder() {
+        #expect(AppTab.allCases.map(\.tabLabel) == ["Patterns", "WIP", "Ready", "Stash", "Shopping"])
+    }
+
+    @Test func screenTitlesUseTheFullNames() {
         #expect(AppTab.allCases.map(\.title) == [
             "Patterns", "WIP", "Ready to stitch", "Thread stash", "Shopping list",
         ])

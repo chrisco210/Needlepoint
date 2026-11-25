@@ -186,3 +186,39 @@ struct PatternDraftFileTests {
         #expect(pattern.coverData == nil)
     }
 }
+
+@MainActor
+struct CameraCoverTests {
+    private func photo(width: CGFloat, height: CGFloat) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: CGSize(width: width, height: height), format: format).image { context in
+            UIColor.green.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        }
+    }
+
+    @Test func aCameraPhotoBecomesAScaledJPEGCover() throws {
+        var draft = PatternDraft()
+        let used = draft.useCameraPhoto(photo(width: 4032, height: 3024))
+        #expect(used)
+        let cover = try #require(draft.cover)
+        #expect(cover.prefix(2) == Data([0xff, 0xd8]))
+        let image = try #require(UIImage(data: cover))
+        #expect(image.size.width * image.scale == CoverRenderer.maxDimension)
+    }
+
+    @Test func aCameraPhotoReplacesTheCover() {
+        var draft = PatternDraft()
+        draft.cover = Data([1])
+        _ = draft.useCameraPhoto(photo(width: 100, height: 100))
+        #expect(draft.cover != Data([1]))
+    }
+
+    @Test func theFakeCameraPhotoIsUsable() {
+        var draft = PatternDraft()
+        let used = draft.useCameraPhoto(CameraPicker.fakePhoto())
+        #expect(used)
+    }
+}
+

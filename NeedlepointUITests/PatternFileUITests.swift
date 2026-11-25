@@ -8,8 +8,8 @@ final class PatternFileUITests: XCTestCase {
     }
 
     @MainActor
-    private func openPattern(_ name: String) -> XCUIApplication {
-        let app = XCUIApplication.launchForTesting(["-ui-testing-seed-patterns"])
+    private func openPattern(_ name: String, extraArguments: [String] = []) -> XCUIApplication {
+        let app = XCUIApplication.launchForTesting(["-ui-testing-seed-patterns"] + extraArguments)
         app.buttons["All patterns"].tap()
         app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier == 'patternCard' AND label BEGINSWITH %@", name + ","))
@@ -45,6 +45,32 @@ final class PatternFileUITests: XCTestCase {
         let removeCover = app.buttons["Remove cover"]
         removeCover.swipeUpUntilHittable(in: app)
         XCTAssertTrue(removeCover.exists)
+    }
+
+    /// `-ui-testing-fake-camera` stands in for the system camera, which UI
+    /// tests can't drive: "Take a photo" returns a generated photo at once.
+    @MainActor
+    func testTakingAPhotoSetsTheCover() {
+        let app = XCUIApplication.launchForTesting(["-ui-testing-seed-patterns", "-ui-testing-fake-camera"])
+        app.buttons["All patterns"].tap()
+        app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier == 'patternCard' AND label BEGINSWITH %@", "Lemon,"))
+            .firstMatch
+            .tap()
+        let takePhoto = app.buttons["Take a photo"]
+        takePhoto.swipeUpUntilHittable(in: app)
+        takePhoto.tap()
+        XCTAssertTrue(element("patternEditor.coverPreview", in: app).waitForExistence(timeout: 5))
+    }
+
+    /// Some simulators report a camera, so `-ui-testing-no-camera` stands in
+    /// for a device without one.
+    @MainActor
+    func testTakeAPhotoIsHiddenWithoutACamera() {
+        let app = openPattern("Lemon", extraArguments: ["-ui-testing-no-camera"])
+        app.buttons["Choose a photo"].swipeUpUntilHittable(in: app)
+        XCTAssertTrue(app.buttons["Choose a photo"].exists)
+        XCTAssertFalse(app.buttons["Take a photo"].exists)
     }
 
     @MainActor

@@ -14,7 +14,7 @@ The app is written in Swift with SwiftUI. It replaces an earlier single-file web
 - [x] WIP tab
 - [x] Ready to stitch tab
 - [x] Folder image editor and folder rename
-- [ ] Camera as a cover photo source (needs a camera usage description in the build settings)
+- [x] Camera as a cover photo source
 - [ ] Bundle the DM Serif Display and Nunito Sans fonts (the app uses the system font until then)
 - [ ] iCloud sync (after the first release)
 - [ ] "Read threads from pattern" (planned, see below)
@@ -154,7 +154,7 @@ A sheet with a `Form`:
 - Name (required) and designer. The designer field suggests existing designer names.
 - Status and mesh pickers.
 - Pattern file: attach a PDF or image up to 20 MB. Replacing the file deletes the old one.
-- Cover photo: choose a photo, use page 1 of the PDF (shown only when the file is a PDF), or remove. When no cover is set and the file is an image, the card uses the file itself.
+- Cover photo: choose a photo, take a photo with the camera (shown only when the device has one), use page 1 of the PDF (shown only when the file is a PDF), or remove. When no cover is set and the file is an image, the card uses the file itself.
 - Thread list. Each row has brand (with suggestions from the brand list below), number, color name or where it's used, and quantity (minimum 1), plus a delete button. Under each row, show "In stash (N)" in green, or "Need N more" (with "you have M" when M > 0) in orange. "Add thread" appends a row pre-filled with the previous row's brand and focuses the number field.
 - Notes.
 - Save, Cancel, and Delete (existing patterns only, with confirmation; deleting also removes the file and cover).

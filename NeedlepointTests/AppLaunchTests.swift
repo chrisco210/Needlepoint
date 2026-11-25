@@ -63,6 +63,17 @@ struct AppLaunchTests {
         }
     }
 
+    @Test func fakeCameraIsHonoredOnlyWhenUITesting() {
+        #expect(AppLaunch(arguments: ["Needlepoint", "-ui-testing", "-ui-testing-fake-camera"]).fakesCamera)
+        #expect(!AppLaunch(arguments: ["Needlepoint", "-ui-testing-fake-camera"]).fakesCamera)
+        #expect(!AppLaunch(arguments: ["Needlepoint", "-ui-testing"]).fakesCamera)
+    }
+
+    @Test func noCameraIsHonoredOnlyWhenUITesting() {
+        #expect(AppLaunch(arguments: ["Needlepoint", "-ui-testing", "-ui-testing-no-camera"]).hidesCamera)
+        #expect(!AppLaunch(arguments: ["Needlepoint", "-ui-testing-no-camera"]).hidesCamera)
+    }
+
     @Test func seedPatternsIsIgnoredWithoutUITesting() {
         #expect(!AppLaunch(arguments: ["Needlepoint", "-ui-testing-seed-patterns"]).seedsPatterns)
     }

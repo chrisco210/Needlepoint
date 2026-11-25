@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 /// A thread row in the pattern editor. The `id` keeps SwiftUI rows and focus
 /// stable while the user edits brand and code.
@@ -74,6 +75,14 @@ struct PatternDraft {
     var canSave: Bool { Pattern.isValidName(name) }
 
     var canUseFirstPageAsCover: Bool { file?.isPDF == true }
+
+    /// Sets the cover to a photo from the camera, scaled like other covers.
+    /// Returns false, leaving the cover alone, if the photo can't be encoded.
+    mutating func useCameraPhoto(_ image: UIImage) -> Bool {
+        guard let jpeg = CoverRenderer.jpeg(from: image) else { return false }
+        cover = jpeg
+        return true
+    }
 
     /// Sets the cover to page 1 of the PDF. Returns false, leaving the cover
     /// alone, when there's no PDF or it can't be read.

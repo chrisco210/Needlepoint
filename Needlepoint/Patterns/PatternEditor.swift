@@ -43,6 +43,9 @@ struct PatternEditor: View {
     @State private var fileProblem: String?
     @State private var photoItem: PhotosPickerItem?
     @State private var coverProblem: String?
+    @State private var takingPhoto = false
+    @Environment(\.fakeCamera) private var fakeCamera
+    @Environment(\.hideCamera) private var hideCamera
     @FocusState private var focus: Field?
 
     init(request: PatternEditorRequest) {
@@ -123,6 +126,13 @@ struct PatternEditor: View {
                 guard let item else { return }
                 Task { await useCoverPhoto(item) }
             }
+            .fullScreenCover(isPresented: $takingPhoto) {
+                CameraPicker { image in
+                    takingPhoto = false
+                    if let image { useCameraPhoto(image) }
+                }
+                .ignoresSafeArea()
+            }
             .fullScreenCover(isPresented: $viewingPDF) {
                 if let file = draft.file {
                     PDFViewer(file: file)
@@ -178,6 +188,15 @@ struct PatternEditor: View {
                 Button("Remove cover", role: .destructive) { draft.cover = nil }
             }
             PhotosPicker("Choose a photo", selection: $photoItem, matching: .images)
+            if !hideCamera && (fakeCamera || CameraPicker.isAvailable) {
+                Button("Take a photo") {
+                    if fakeCamera {
+                        useCameraPhoto(CameraPicker.fakePhoto())
+                    } else {
+                        takingPhoto = true
+                    }
+                }
+            }
             if draft.canUseFirstPageAsCover {
                 Button("Use page 1 of the PDF") {
                     coverProblem = draft.useFirstPageAsCover() ? nil : "Page 1 of the PDF couldn't be read."
@@ -213,6 +232,10 @@ struct PatternEditor: View {
         } catch {
             fileProblem = "That file couldn't be opened."
         }
+    }
+
+    private func useCameraPhoto(_ image: UIImage) {
+        coverProblem = draft.useCameraPhoto(image) ? nil : "That photo couldn't be used."
     }
 
     private func useCoverPhoto(_ item: PhotosPickerItem) async {

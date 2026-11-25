@@ -17,6 +17,8 @@ import SwiftUI
         WindowGroup {
             RootView()
                 .defaultAppStorage(launch.defaults)
+                .environment(\.fakeCamera, launch.fakesCamera)
+                .environment(\.hideCamera, launch.hidesCamera)
         }
         .modelContainer(container)
     }

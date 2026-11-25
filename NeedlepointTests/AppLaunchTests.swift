@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import Testing
+import UniformTypeIdentifiers
 @testable import Needlepoint
 
 @MainActor
@@ -48,6 +49,17 @@ struct AppLaunchTests {
             let patterns = try container.mainContext.fetch(FetchDescriptor<Pattern>())
             #expect(patterns.count == 3)
             #expect(Set(patterns.map(\.folderKey)) == ["kirk & bradley", ""])
+        }
+    }
+
+    @Test func seededStrawberryHasAPDF() throws {
+        let container = try AppLaunch(arguments: ["Needlepoint", "-ui-testing", "-ui-testing-seed-patterns"]).makeContainer()
+        try withExtendedLifetime(container) {
+            let patterns = try container.mainContext.fetch(FetchDescriptor<Pattern>())
+            let strawberry = try #require(patterns.first { $0.name == "Strawberry" })
+            #expect(strawberry.fileType == .pdf)
+            #expect(strawberry.fileName == "strawberry.pdf")
+            #expect(strawberry.fileData?.starts(with: Data("%PDF".utf8)) == true)
         }
     }
 

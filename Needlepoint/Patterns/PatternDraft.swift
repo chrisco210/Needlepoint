@@ -34,7 +34,7 @@ struct EditableThread: Identifiable, Equatable {
 }
 
 /// The pattern editor's form state, kept apart from the model so Cancel
-/// leaves the pattern untouched. The pattern file and cover aren't part of it.
+/// leaves the pattern untouched.
 struct PatternDraft {
     enum SaveError: Error, Equatable {
         case missingName
@@ -49,6 +49,10 @@ struct PatternDraft {
     var mesh: Mesh?
     var notes = ""
     var threads: [EditableThread] = []
+    /// The pattern PDF or image. Replacing it replaces the saved file on save.
+    var file: AttachedFile?
+    /// The JPEG cover. Nil means the card shows the file itself if it's an image.
+    var cover: Data?
 
     init() {}
 
@@ -62,10 +66,22 @@ struct PatternDraft {
         status = pattern.status
         mesh = pattern.mesh
         notes = pattern.notes
-        threads = pattern.threads.map(EditableThread.init)
+        threads = pattern.threads.map { EditableThread($0) }
+        file = pattern.fileData.map { AttachedFile(data: $0, name: pattern.fileName, type: pattern.fileType) }
+        cover = pattern.coverData
     }
 
     var canSave: Bool { Pattern.isValidName(name) }
+
+    var canUseFirstPageAsCover: Bool { file?.isPDF == true }
+
+    /// Sets the cover to page 1 of the PDF. Returns false, leaving the cover
+    /// alone, when there's no PDF or it can't be read.
+    mutating func useFirstPageAsCover() -> Bool {
+        guard let file, file.isPDF, let jpeg = CoverRenderer.firstPageJPEG(fromPDF: file.data) else { return false }
+        cover = jpeg
+        return true
+    }
 
     /// Appends a row with the previous row's brand and returns its id, so the
     /// editor can move focus to the new row's number field.
@@ -95,6 +111,10 @@ struct PatternDraft {
         target.status = status
         target.mesh = mesh
         target.notes = notes
+        target.fileData = file?.data
+        target.fileName = file?.name ?? ""
+        target.fileType = file?.type
+        target.coverData = cover
         target.threads = PatternThread.cleaned(threads.map(\.patternThread))
         try context.save()
         return target

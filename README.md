@@ -265,24 +265,28 @@ From the command line, run tests from the repository root. These commands leave 
 Set the destination and turn off parallel testing once per shell:
 
 ```sh
-DEST='platform=iOS Simulator,name=iPad Pro 11-inch (M5)'
-NOCLONE='-parallel-testing-enabled NO'
+DEST='platform=iOS Simulator,name=iPad (A16)'
+NOCLONE=(-parallel-testing-enabled NO -collect-test-diagnostics never)
 ```
+
+`NOCLONE` is an array so that zsh passes each flag as its own argument. Write it as `"${NOCLONE[@]}"`, which works in both zsh and bash.
+
+`-collect-test-diagnostics never` matters most when a test fails. Without it, `xcodebuild` tries to collect diagnostics from the simulator after a failure, and that step can wait 600 seconds before it times out.
 
 With parallel testing on, `xcodebuild` creates and boots copies of the simulator ("Clone 1 of ..."), even for the unit tests alone. Each clone boots from cold before any test runs. Running tests is faster when the simulator is already booted, for example because you left it open after running the app from Xcode.
 
 While working on a change, run only the unit tests:
 
 ```sh
-xcodebuild test -scheme Needlepoint -destination "$DEST" $NOCLONE -only-testing:NeedlepointTests
+xcodebuild test -scheme Needlepoint -destination "$DEST" "${NOCLONE[@]}" -only-testing:NeedlepointTests
 ```
 
 To run one suite or one test, name it after the target:
 
 ```sh
-xcodebuild test -scheme Needlepoint -destination "$DEST" $NOCLONE \
+xcodebuild test -scheme Needlepoint -destination "$DEST" "${NOCLONE[@]}" \
   -only-testing:NeedlepointTests/StashThreadTests
-xcodebuild test -scheme Needlepoint -destination "$DEST" $NOCLONE \
+xcodebuild test -scheme Needlepoint -destination "$DEST" "${NOCLONE[@]}" \
   -only-testing:NeedlepointUITests/ShellUITests/testSeeWhatsReadySwitchesToTheReadyTab
 ```
 
@@ -290,13 +294,13 @@ To rerun tests several times without changing code, build once and then skip the
 
 ```sh
 xcodebuild build-for-testing -scheme Needlepoint -destination "$DEST"
-xcodebuild test-without-building -scheme Needlepoint -destination "$DEST" $NOCLONE -only-testing:NeedlepointTests
+xcodebuild test-without-building -scheme Needlepoint -destination "$DEST" "${NOCLONE[@]}" -only-testing:NeedlepointTests
 ```
 
 Before committing, run both targets:
 
 ```sh
-xcodebuild test -scheme Needlepoint -destination "$DEST" $NOCLONE
+xcodebuild test -scheme Needlepoint -destination "$DEST" "${NOCLONE[@]}"
 ```
 
 `xcodebuild` prints a lot of log noise. To see which tests failed and why, open the newest result bundle under `~/Library/Developer/Xcode/DerivedData/Needlepoint-*/Logs/Test/` in Xcode, or read it with `xcrun xcresulttool get test-results tests --path <bundle>`.

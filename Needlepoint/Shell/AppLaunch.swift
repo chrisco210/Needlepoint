@@ -1,5 +1,7 @@
 import Foundation
 import SwiftData
+import UIKit
+import UniformTypeIdentifiers
 
 /// Reads the launch arguments UI tests pass, and builds the model container
 /// and defaults to match. A normal launch passes none of them.
@@ -60,6 +62,9 @@ struct AppLaunch {
             PatternThread(brand: "DMC Floss", code: "310", name: "Black", qty: 1),
             PatternThread(brand: "DMC Floss", code: "321", name: "Red", qty: 1),
         ]
+        strawberry.fileData = seedPDF(title: "Strawberry")
+        strawberry.fileName = "strawberry.pdf"
+        strawberry.fileType = .pdf
 
         // Different case from Strawberry's designer, so it shares the folder.
         let lemon = Pattern(name: "Lemon")
@@ -72,5 +77,20 @@ struct AppLaunch {
         santa.threads = [PatternThread(brand: "Silk & Ivory", code: "01", name: "Snow", qty: 1)]
 
         return [strawberry, lemon, santa]
+    }
+
+    /// A one-page US Letter PDF with the title printed on it.
+    private static func seedPDF(title: String) -> Data {
+        let bounds = CGRect(x: 0, y: 0, width: 612, height: 792)
+        return UIGraphicsPDFRenderer(bounds: bounds).pdfData { context in
+            context.beginPage()
+            UIColor(red: 0.48, green: 0.12, blue: 0.31, alpha: 1).setFill()
+            context.fill(CGRect(x: 72, y: 72, width: 468, height: 200))
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.boldSystemFont(ofSize: 36),
+                .foregroundColor: UIColor.white,
+            ]
+            (title as NSString).draw(at: CGPoint(x: 96, y: 150), withAttributes: attributes)
+        }
     }
 }

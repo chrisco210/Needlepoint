@@ -1,5 +1,9 @@
+import Foundation
+import PhotosUI
 import SwiftData
 import SwiftUI
+import UIKit
+import UniformTypeIdentifiers
 
 /// What the pattern editor sheet opens with.
 enum PatternEditorRequest: Identifiable {
@@ -15,7 +19,7 @@ enum PatternEditorRequest: Identifiable {
     }
 }
 
-/// The pattern editor sheet. The pattern file and cover photo come in a later change.
+/// The pattern editor sheet.
 struct PatternEditor: View {
     private enum Field: Hashable {
         case name, designer, notes
@@ -34,6 +38,11 @@ struct PatternEditor: View {
     @State private var draft: PatternDraft
     @State private var confirmingDelete = false
     @State private var saveFailed = false
+    @State private var importingFile = false
+    @State private var viewingPDF = false
+    @State private var fileProblem: String?
+    @State private var photoItem: PhotosPickerItem?
+    @State private var coverProblem: String?
     @FocusState private var focus: Field?
 
     init(request: PatternEditorRequest) {
@@ -62,8 +71,12 @@ struct PatternEditor: View {
 
     var body: some View {
         NavigationStack {
+            // Details come first: with a 360-point PDF preview at the top, the
+            // name field started below the fold.
             Form {
                 detailsSection
+                fileSection
+                coverSection
                 threadsSection
                 Section("Notes") {
                     TextField("Notes", text: $draft.notes, axis: .vertical)
@@ -100,7 +113,118 @@ struct PatternEditor: View {
             .onAppear {
                 if pattern == nil { focus = .name }
             }
+            .fileImporter(isPresented: $importingFile, allowedContentTypes: [.pdf, .image]) { result in
+                switch result {
+                case .success(let url): attachFile(at: url)
+                case .failure: fileProblem = "That file couldn't be opened."
+                }
+            }
+            .onChange(of: photoItem) { _, item in
+                guard let item else { return }
+                Task { await useCoverPhoto(item) }
+            }
+            .fullScreenCover(isPresented: $viewingPDF) {
+                if let file = draft.file {
+                    PDFViewer(file: file)
+                }
+            }
         }
+        // The default iPad form sheet is 660 points tall, too short for the
+        // PDF preview and the fields around it.
+        .presentationSizing(.page)
+    }
+
+    // MARK: - Pattern file and cover
+
+    private var fileSection: some View {
+        Section("Pattern file") {
+            if let file = draft.file {
+                if file.isPDF {
+                    PDFKitView(data: file.data, accessibilityID: "patternEditor.pdfPreview")
+                        .frame(height: 360)
+                    Button("Open PDF full screen") { viewingPDF = true }
+                } else if file.isImage, let image = UIImage(data: file.data) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, maxHeight: 360)
+                        .accessibilityLabel("Pattern image")
+                }
+                if !file.name.isEmpty {
+                    Text(file.name)
+                        .foregroundStyle(Color.mute)
+                }
+            } else {
+                Text("No file yet")
+                    .foregroundStyle(Color.mute)
+            }
+            Button(draft.file == nil ? "Attach file" : "Replace file") { importingFile = true }
+            if let fileProblem {
+                Text(fileProblem)
+                    .foregroundStyle(Color.warn)
+            }
+        }
+    }
+
+    private var coverSection: some View {
+        Section {
+            if let cover = draft.cover, let image = UIImage(data: cover) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: 240)
+                    .accessibilityLabel("Cover photo")
+                    .accessibilityIdentifier("patternEditor.coverPreview")
+                Button("Remove cover", role: .destructive) { draft.cover = nil }
+            }
+            PhotosPicker("Choose a photo", selection: $photoItem, matching: .images)
+            if draft.canUseFirstPageAsCover {
+                Button("Use page 1 of the PDF") {
+                    coverProblem = draft.useFirstPageAsCover() ? nil : "Page 1 of the PDF couldn't be read."
+                }
+            }
+            if let coverProblem {
+                Text(coverProblem)
+                    .foregroundStyle(Color.warn)
+            }
+        } header: {
+            Text("Cover photo")
+        } footer: {
+            if draft.cover == nil && draft.file?.isImage == true {
+                Text("With no cover, cards show the pattern image.")
+            }
+        }
+    }
+
+    private func attachFile(at url: URL) {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        do {
+            let values = try url.resourceValues(forKeys: [.fileSizeKey, .contentTypeKey])
+            // Check the size before reading, so a huge file isn't loaded just to be rejected.
+            if let size = values.fileSize, size > AttachedFile.maxBytes {
+                throw AttachedFile.Problem.tooLarge
+            }
+            let type = values.contentType ?? UTType(filenameExtension: url.pathExtension) ?? .data
+            draft.file = try AttachedFile.make(data: Data(contentsOf: url), name: url.lastPathComponent, type: type)
+            fileProblem = nil
+        } catch let problem as AttachedFile.Problem {
+            fileProblem = problem.message
+        } catch {
+            fileProblem = "That file couldn't be opened."
+        }
+    }
+
+    private func useCoverPhoto(_ item: PhotosPickerItem) async {
+        defer { photoItem = nil }
+        guard let data = try? await item.loadTransferable(type: Data.self),
+              let jpeg = CoverRenderer.jpeg(fromImage: data)
+        else {
+            coverProblem = "That photo couldn't be used."
+            return
+        }
+        draft.cover = jpeg
+        coverProblem = nil
     }
 
     private var detailsSection: some View {
@@ -281,6 +405,26 @@ struct PatternEditor: View {
         private func supplyColor(_ supply: ThreadSupply) -> Color {
             if case .covered = supply { return Color("OK") }
             return Color.warn
+        }
+    }
+}
+
+/// A PDF filling the screen, opened from the editor's "Open PDF full screen".
+private struct PDFViewer: View {
+    let file: AttachedFile
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            PDFKitView(data: file.data, accessibilityID: "patternViewer.pdf")
+                .ignoresSafeArea(edges: .bottom)
+                .navigationTitle(file.name.isEmpty ? "Pattern" : file.name)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }
+                    }
+                }
         }
     }
 }

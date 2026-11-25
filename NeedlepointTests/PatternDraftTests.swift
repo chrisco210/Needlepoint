@@ -129,7 +129,7 @@ struct PatternDraftTests {
         #expect(try allPatterns().count == 1)
         #expect(pattern.name == "Strawberry Field")
         #expect(pattern.created == created)
-        #expect(pattern.fileData == Data([1, 2, 3]), "The form doesn't edit the file, so saving keeps it")
+        #expect(pattern.fileData == Data([1, 2, 3]), "Saving without touching the file keeps it")
         #expect(pattern.coverData == Data([4]))
     }
 

@@ -79,6 +79,9 @@ final class PatternEditorUITests: XCTestCase {
         let name = field("patternEditor.name", in: app)
         XCTAssertTrue(name.waitForExistence(timeout: 5))
         XCTAssertEqual(name.value as? String, "Strawberry")
+        // Strawberry's PDF preview pushes the thread rows below the fold, and
+        // Form only creates rows that are on screen.
+        app.buttons["patternEditor.addThread"].swipeUpUntilHittable(in: app)
         XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "threadRow.code").count, 2)
         XCTAssertTrue(app.navigationBars["Edit pattern"].exists)
     }

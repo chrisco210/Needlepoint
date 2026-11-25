@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stitch Stash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: warm, tidy, a crafter's workroom — calm enough to use mid-project
+   IDEA: a needlepoint canvas and a thread organizer card with labeled spools
+   PICTURE: the working library itself; header band printed with canvas mesh
+   COLOUR and TYPE: plum band, blush support, teal accent; DM Serif Display + Nunito Sans
+   LAYOUT: tabs under the band, card grid of patterns, stash as spool rows, shopping list grouped by brand */
+:root{color-scheme:light dark;
+--bg:light-dark(#fbfaf8,#17121a);--ink:light-dark(#221b26,#f1eaf0);--mute:light-dark(#6d6372,#b5a9b8);
+--plum:light-dark(#7a1f4f,#5a1739);--blush:light-dark(#f6e4ec,#2c1d27);--card:light-dark(#ffffff,#221a25);
+--line:light-dark(#e7dde3,#3a2e3b);--teal:light-dark(#0c7480,#4cc3cf);--warn:light-dark(#b23a12,#ff9a73);--ok:light-dark(#1f7a4c,#6fd3a0)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Nunito Sans",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"DM Serif Display",Georgia,serif;font-weight:400;line-height:1.05;margin:0;text-wrap:balance}
+.band{padding:clamp(20px,3vw,40px) max(5vw,16px)}
+header.band{background:var(--plum);color:#fff;position:relative;overflow:hidden;padding-bottom:0}
+header svg.mesh{position:absolute;inset:0;width:100%;height:100%;opacity:.16;pointer-events:none}
+.hrow{position:relative;display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;max-width:1240px;margin:0 auto}
+header h1{font-size:clamp(34px,5vw,52px)}
+header p{margin:6px 0 0;opacity:.85}
+.stats{display:flex;gap:22px;flex-wrap:wrap}.stats b{display:block;font:28px/1 "DM Serif Display",serif}.stats span{font-size:13px;opacity:.85}
+nav{position:relative;display:flex;gap:4px;max-width:1240px;margin:22px auto 0;overflow-x:auto}
+nav a{flex:none;color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px 12px 0 0;font-weight:700;min-height:44px}
+nav a[aria-current=true]{background:var(--bg);color:var(--ink)}
+nav a i{font-style:normal;font-size:13px;opacity:.7;margin-left:6px}
+main{max-width:1240px;margin:0 auto}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.bar input[type=search]{flex:1 1 220px}
+input,select,textarea{font:inherit;font-size:16px;color:inherit;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+textarea{min-height:90px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+button,.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;background:var(--blush);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.pri{background:var(--teal);color:#fff}.ghost{background:transparent;border:1.5px solid var(--line)}.danger{background:transparent;color:var(--warn);border:1.5px solid currentColor}
+.sm{min-height:36px;padding:6px 10px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;padding:0;display:flex;flex-direction:column;font-weight:400;min-height:0;white-space:normal}
+.card>*{width:100%;align-self:stretch}
+.thumb{width:100%;aspect-ratio:4/3;background:var(--blush);display:grid;place-items:center;overflow:hidden;position:relative}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .doc{font:22px "DM Serif Display",serif;color:var(--plum);text-align:center;padding:16px}
+.card .body{padding:12px 14px 14px;display:grid;gap:6px}
+.card h3{font-size:21px}
+.meta{color:var(--mute);font-size:14px}
+.pill{display:inline-block;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--blush)}
+.pill.ip{background:var(--teal);color:#fff}.pill.fin{background:var(--ok);color:#fff}
+.meter{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.meter i{display:block;height:100%;background:var(--teal)}
+.empty{border:2px dashed var(--line);border-radius:16px;padding:40px 20px;text-align:center;color:var(--mute)}
+.empty h2{color:var(--ink);font-size:28px;margin-bottom:8px}
+.rows{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.spool{width:40px;height:40px;border-radius:50%;border:3px solid var(--card);box-shadow:0 0 0 1.5px var(--line),inset 0 -6px 0 rgba(0,0,0,.18),inset 0 4px 0 rgba(255,255,255,.25)}
+.row b{font-size:17px}.qty{display:flex;align-items:center;gap:6px}.qty output{min-width:2.2em;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.group h2{font-size:24px;margin:22px 0 10px}
+.banner{background:var(--blush);border-radius:12px;padding:10px 14px;margin-bottom:16px;font-size:15px}
+dialog{border:0;border-radius:18px;padding:0;width:min(760px,96vw);max-height:92vh;background:var(--bg);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(20,10,20,.55)}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:1}
+.dh h2{font-size:26px}
+.db{padding:18px 20px;display:grid;gap:14px}
+.f2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:grid;gap:4px;font-size:14px;font-weight:700}
+.preview{border-radius:12px;overflow:hidden;background:var(--blush)}
+.preview img{width:100%;display:block}.preview iframe{width:100%;height:60vh;border:0;display:block;background:#fff}
+.trow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.8fr) minmax(0,1.3fr) 76px 40px;gap:6px;align-items:center}
+.trow .st{grid-column:1/-1;font-size:13px;margin:-2px 0 4px}
+.have{color:var(--ok)}.short{color:var(--warn)}
+.df{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--bg)}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:12px;padding:3px;gap:3px}.seg button{background:transparent}.seg button[aria-pressed=true]{background:var(--plum);color:#fff}
+.crumb{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:16px}.crumb h2{font-size:clamp(26px,3vw,34px)}
+.mosaic{display:grid;width:100%;height:100%;gap:2px}.mosaic.n2{grid-template-columns:1fr 1fr}.mosaic.n3,.mosaic.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.mosaic.n3 img:first-child{grid-row:span 2}.mosaic img{width:100%;height:100%;object-fit:cover}
+svg.folder{width:58%;height:auto}
+.coverrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.cov{width:120px;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--blush);display:grid;place-items:center;flex:none}.cov img{width:100%;height:100%;object-fit:cover}.covbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:1 1 220px}
+.fwrap{position:relative}.fwrap>.card{width:100%;height:100%}
+.fedit{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.92);color:#221b26;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.fimg.contain{object-fit:contain!important;padding:8%}.fimg.cover{object-fit:cover}
+.fprev{width:min(320px,100%);aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:var(--blush);display:grid;place-items:center;border:1px solid var(--line)}.fprev img{width:100%;height:100%}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.sw{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);padding:0;min-height:0}.sw[aria-pressed=true]{outline:3px solid var(--teal);outline-offset:2px}
+.swatches input[type=color]{width:60px;padding:4px}
+.almost{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}.almost>.card{border:0;border-radius:0}
+.acts{padding:0 14px 14px;display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.pill.nf{background:var(--plum);color:#fff}
+.miss{padding:0 14px 14px;font-size:14px;display:grid;gap:2px;color:var(--warn)}.miss b{color:var(--ink)}.miss .meta{color:var(--mute)}
+.readbox{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--blush);border-radius:12px;padding:12px}
+.readbox .meta{flex:1 1 220px}
+.trow.new input{border-color:var(--teal)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media(max-width:600px){.trow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 70px 40px}.trow .nm{grid-column:1/-1;order:5}.row{grid-template-columns:40px minmax(0,1fr)}.row .qty{grid-column:1/-1;justify-content:flex-end}}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}}
+</style></head><body>
+<header class="band">
+<svg class="mesh" aria-hidden="true"><defs><pattern id="m" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M0 0H14M0 0V14" stroke="#fff" stroke-width="2"/><path d="M3 11L11 3" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".5"/></pattern></defs><rect width="100%" height="100%" fill="url(#m)"/></svg>
+<div class="hrow"><div><h1>Stitch Stash</h1><p>Your needlepoint patterns, thread stash and shopping list in one place.</p></div>
+<div class="stats"><div><b id="sP">0</b><span>patterns</span></div><div><b id="sT">0</b><span>threads on hand</span></div><div><b id="sN">0</b><span>to buy</span></div></div></div>
+<nav aria-label="Sections"><a href="#patterns" data-v="patterns">Patterns<i id="cP"></i></a><a href="#wip" data-v="wip">WIP<i id="cW"></i></a><a href="#ready" data-v="ready">Ready to stitch<i id="cR"></i></a><a href="#stash" data-v="stash">Thread stash<i id="cT"></i></a><a href="#shopping" data-v="shopping">Shopping list<i id="cN"></i></a></nav>
+</header>
+<main class="band">
+<div id="note" class="banner" hidden></div>
+<section id="v-patterns">
+<div class="bar"><input type="search" id="qP" placeholder="Search patterns, designers, threads" aria-label="Search patterns">
+<select id="fS" aria-label="Filter by status" style="width:auto"><option value="">All statuses</option><option>Wishlist</option><option>Not started</option><option value="In progress">Stitching</option><option value="Needs finishing">Stitched – needs finishing</option><option>Finished</option></select>
+<div class="seg" role="group" aria-label="Pattern view"><button class="sm" data-mode="folders">Folders</button><button class="sm" data-mode="all">All patterns</button></div>
+<button class="pri" id="addP">+ Add pattern</button></div>
+<div id="pList"></div>
+</section>
+<section id="v-wip" hidden>
+<div class="bar"><input type="search" id="qW" placeholder="Search projects in progress" aria-label="Search projects in progress"></div>
+<div id="wList"></div>
+</section>
+<section id="v-ready" hidden>
+<div class="bar"><input type="search" id="qR" placeholder="Search patterns or designers" aria-label="Search ready patterns">
+<label style="display:flex;align-items:center;gap:8px;font-weight:600;width:auto"><input type="checkbox" id="rW" checked style="width:22px;min-height:22px"> Include wishlist</label></div>
+<div id="rList"></div>
+</section>
+<section id="v-stash" hidden>
+<div class="bar"><input type="search" id="qT" placeholder="Search by brand, number or color" aria-label="Search stash">
+<button class="ghost" id="bulk">Paste a list</button><button class="pri" id="addT">+ Add thread</button></div>
+<div id="tList"></div>
+</section>
+<section id="v-shopping" hidden>
+<div class="bar"><label style="display:flex;align-items:center;gap:8px;font-weight:600"><input type="checkbox" id="wl" style="width:22px;min-height:22px"> Include wishlist patterns</label>
+<span style="flex:1"></span><button class="ghost" id="copy">Copy list</button></div>
+<div id="nList"></div>
+</section>
+</main>
+
+<dialog id="dP"><form method="dialog" id="fP">
+<div class="dh"><h2 id="dPt">New pattern</h2><button type="button" class="ghost sm" data-close>Close</button></div>
+<div class="db">
+<div id="pv"></div>
+<div class="f2"><label>Pattern name<input id="pName" required></label><label>Designer<input id="pDes" list="desL"></label></div>
+<div class="f2"><label>Status<select id="pStat"><option>Wishlist</option><option>Not started</option><option value="In progress">Stitching</option><option value="Needs finishing">Stitched – needs finishing</option><option>Finished</option></select></label>
+<label>Mesh<select id="pMesh"><option value="">—</option><option>10</option><option>13</option><option>18</option><option>Other</option></select></label></div>
+<label>Pattern file (PDF or photo)<input type="file" id="pFile" accept="application/pdf,image/*"></label>
+<div><div style="font-size:14px;font-weight:700;margin-bottom:4px">Cover photo</div><div class="coverrow"><div class="cov" id="covPv"></div><div class="covbtns"><button type="button" class="ghost sm" id="covPick">Choose photo</button><button type="button" class="ghost sm" id="covPdf">Use page 1 of PDF</button><button type="button" class="ghost sm" id="covRm">Remove</button><span class="meta" id="covSt">Shown on the pattern card and its folder.</span></div></div><input type="file" id="pCover" accept="image/*" hidden></div>
+<div id="readRow" class="readbox" hidden><button type="button" class="pri" id="readBtn">Read threads from pattern</button><span id="readSt" class="meta" role="status">Claude reads the stitch guide and fills in the thread list for you to check.</span><button type="button" class="ghost sm" id="readStop" hidden>Stop</button></div>
+<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="font-size:20px">Threads this pattern uses</h3><button type="button" class="sm" id="addR">+ Thread</button></div>
+<div id="tRows" class="rows"></div></div>
+<label>Notes<textarea id="pNotes" placeholder="Stitch guide, where you bought it, finishing ideas…"></textarea></label>
+</div>
+<div class="df"><button type="button" class="danger" id="delP">Delete</button><span style="flex:1"></span><button type="button" class="ghost" data-close>Cancel</button><button class="pri" id="saveP">Save pattern</button></div>
+</form></dialog>
+
+<dialog id="dT"><form method="dialog" id="fT">
+<div class="dh"><h2 id="dTt">Add thread</h2><button type="button" class="ghost sm" data-close>Close</button></div>
+<div class="db"><div class="f2"><label>Brand<input id="tBrand" list="brL" required></label><label>Color number<input id="tCode" required></label></div>
+<div class="f2"><label>Color name<input id="tName"></label><label>Swatch<input type="color" id="tCol" value="#b84a7a"></label></div>
+<label>On hand (cards / skeins)<input type="number" id="tQty" min="0" step="1" value="1" inputmode="numeric"></label></div>
+<div class="df"><button type="button" class="danger" id="delT">Delete</button><span style="flex:1"></span><button type="button" class="ghost" data-close>Cancel</button><button class="pri">Save thread</button></div>
+</form></dialog>
+
+<dialog id="dB"><form method="dialog" id="fB">
+<div class="dh"><h2>Paste a thread list</h2><button type="button" class="ghost sm" data-close>Close</button></div>
+<div class="db"><p class="meta" style="margin:0">One thread per line: brand, number, color name, quantity. Threads already in your stash get the quantity added.</p>
+<textarea id="bTxt" rows="8" placeholder="DMC, 310, Black, 2&#10;Silk &amp; Ivory, 01, Snow, 1&#10;Kreinik #12, 002, Gold, 1"></textarea></div>
+<div class="df"><span></span><button class="pri">Add to stash</button></div>
+</form></dialog>
+
+<dialog id="dR"><form method="dialog" id="fR">
+<div class="dh"><h2>Rename folder</h2><button type="button" class="ghost sm" data-close>Close</button></div>
+<div class="db"><label>Designer name<input id="rName" required list="desL"></label><p class="meta" style="margin:0">Updates the designer on every pattern in this folder. Using another folder's name merges them.</p></div>
+<div class="df"><span></span><button type="button" class="ghost" data-close>Cancel</button><button class="pri">Rename</button></div>
+</form></dialog>
+<dialog id="dF"><form method="dialog" id="fF">
+<div class="dh"><h2 id="dFt">Folder image</h2><button type="button" class="ghost sm" data-close>Close</button></div>
+<div class="db">
+<div class="coverrow"><div class="fprev" id="fPrev"></div><div class="covbtns" style="flex-direction:column;align-items:flex-start"><button type="button" class="pri sm" id="fPick">Choose image</button><button type="button" class="ghost sm" id="fRm">Remove image</button><span class="meta" id="fSt">Use the designer’s logo, a favorite canvas, or any photo.</span></div></div>
+<div><div style="font-size:14px;font-weight:700;margin-bottom:6px">How it fits</div><div class="seg" role="group" aria-label="Image fit"><button type="button" class="sm" data-fit="contain">Show whole image (best for logos)</button><button type="button" class="sm" data-fit="cover">Fill the tile</button></div></div>
+<div><div style="font-size:14px;font-weight:700;margin-bottom:6px">Background color</div><div class="swatches" id="fSw"></div></div>
+</div>
+<div class="df"><span></span><button type="button" class="ghost" data-close>Cancel</button><button class="pri" id="fSave">Save</button></div>
+</form></dialog>
+<dialog id="dC"><form method="dialog"><div class="db"><h2 style="font-size:24px" id="cMsg">Delete?</h2><p class="meta" id="cSub" style="margin:0"></p></div>
+<div class="df"><span></span><button value="no" class="ghost">Keep it</button><button value="yes" class="danger">Delete</button></div></form></dialog>
+
+<datalist id="brL"><option>DMC Pearl Cotton #3</option><option>DMC Pearl Cotton #5</option><option>DMC Floss</option><option>Silk &amp; Ivory</option><option>Splendor</option><option>Vineyard Silk</option><option>Planet Earth Fiber</option><option>Rainbow Gallery Neon Rays</option><option>Rainbow Gallery Fyre Werks</option><option>Kreinik #12 Braid</option><option>Pepper Pot Silk</option><option>Appleton Wool</option><option>Paternayan</option><option>Watercolours</option><option>Silk Lamé Braid</option><option>Entice</option><option>Bravo!</option></datalist>
+<datalist id="desL"></datalist>
+<input type="file" id="fCover" accept="image/*" hidden>
+<div class="toast" id="toast" role="status"></div>
+
+<script>{
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const key=(b,c)=>(String(b||'').trim().toLowerCase()+'|'+String(c||'').trim().toLowerCase());
+const nid=p=>p+'-'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+let PM='folders';try{PM=localStorage.getItem('pmode')==='all'?'all':'folders'}catch{}
+const S={cov:{blob:null,url:'',remove:false},pmode:PM,folder:null,col:null,assets:null,items:new Map(),view:'patterns',editP:null,editT:null,rows:[]};
+const pats=()=>[...S.items.values()].filter(d=>d.kind==='pattern');
+const thr=()=>[...S.items.values()].filter(d=>d.kind==='thread');
+const stashMap=()=>{const m=new Map();for(const t of thr())m.set(key(t.brand,t.code),t);return m};
+const fkey=p=>String(p.designer||'').trim().toLowerCase();
+function folders(){const m=new Map();for(const p of pats()){const k=fkey(p);if(!m.has(k))m.set(k,{name:k?String(p.designer).trim():'No designer',list:[]});m.get(k).list.push(p)}return m}
+const SL=s=>({'In progress':'Stitching','Needs finishing':'Needs finishing'}[s]||s||'Not started');
+const blobUrl=id=>id?'/_blob/'+encodeURIComponent(id):'';
+const coverUrl=p=>p.coverId?blobUrl(p.coverId):(p.assetId&&/^image\//.test(p.fileType||'')?blobUrl(p.assetId):'');
+const fid=k=>{let h=5381;for(const c of k)h=((h*33)^c.codePointAt(0))>>>0;return 'f-'+h.toString(36)+'-'+k.length};
+const fmeta=k=>S.items.get(fid(k));
+const hex=c=>/^#[0-9a-f]{6}$/i.test(c||'')?c:'';
+const fimg=(m,src)=>{const fit=m?.fit==='contain'?'contain':'cover',bg=hex(m?.bg);return `<img src="${src}" alt="" loading="lazy" class="fimg ${fit}" style="${bg?`background:${bg}`:''}">`};
+const fileUrl=p=>p.assetId?'/_blob/'+encodeURIComponent(p.assetId):'';
+let tt;const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2200)};
+const note=m=>{const n=$('#note');n.hidden=!m;n.textContent=m||''};
+
+/* ---- storage: one write at a time per doc ---- */
+const q={};
+function save(id,data){S.items.set(id,{...data,id});render();
+  if(!S.col)return Promise.resolve();
+  const prev=q[id]||Promise.resolve();
+  return q[id]=prev.then(()=>{const b={...data};delete b.id;return S.col.doc(id).set(b)}).catch(e=>{toast(e&&e.code==='quota_exceeded'?'Storage is full — delete something first':'Could not save — check your connection')});}
+function del(id){S.items.delete(id);render();if(S.col){const prev=q[id]||Promise.resolve();q[id]=prev.then(()=>S.col.doc(id).delete()).catch(()=>toast('Could not delete'))}}
+const timers={};function saveSoon(id,data){S.items.set(id,{...data,id});render();clearTimeout(timers[id]);timers[id]=setTimeout(()=>save(id,S.items.get(id)),700)}
+
+/* ---- derived ---- */
+function patternStatus(p,sm){const ts=(p.threads||[]).filter(t=>t.brand||t.code);let ready=0;for(const t of ts){const s=sm.get(key(t.brand,t.code));if(s&&+s.qty>=(+t.qty||1))ready++}return{ready,total:ts.length}}
+function shopping(){const sm=stashMap(),need=new Map(),inclW=$('#wl').checked;
+  for(const p of pats()){if(p.status==='Finished'||p.status==='Needs finishing'||(p.status==='Wishlist'&&!inclW))continue;
+    for(const t of p.threads||[]){if(!t.brand&&!t.code)continue;const k=key(t.brand,t.code);const n=need.get(k)||{brand:t.brand.trim(),code:t.code.trim(),name:t.name,qty:0,pats:[]};n.qty+=(+t.qty||1);if(!n.name&&t.name)n.name=t.name;n.pats.push(p.name);need.set(k,n)}}
+  const out=[];for(const[k,n]of need){const have=+(sm.get(k)?.qty||0);if(n.qty>have)out.push({...n,k,have,buy:n.qty-have,col:sm.get(k)?.color})}
+  return out.sort((a,b)=>a.brand.localeCompare(b.brand)||a.code.localeCompare(b.code,undefined,{numeric:true}))}
+
+/* ---- render ---- */
+function render(){const P=pats(),T=thr(),sm=stashMap(),N=shopping();
+  $('#sP').textContent=P.length;$('#sT').textContent=T.reduce((a,t)=>a+(+t.qty||0),0);$('#sN').textContent=N.reduce((a,n)=>a+n.buy,0);
+  $('#cP').textContent=P.length||'';$('#cT').textContent=T.length||'';$('#cN').textContent=N.length||'';
+  $('#desL').innerHTML=[...new Set(P.map(p=>p.designer).filter(Boolean))].map(d=>`<option value="${esc(d)}">`).join('');
+  // patterns
+  const qp=$('#qP').value.trim().toLowerCase(),fs=$('#fS').value;
+  const order={'In progress':0,'Needs finishing':1,'Not started':2,'Wishlist':3,'Finished':4};
+  const match=p=>(!fs||p.status===fs)&&(!qp||[p.name,p.designer,p.notes,...(p.threads||[]).map(t=>t.brand+' '+t.code+' '+t.name)].join(' ').toLowerCase().includes(qp));
+  const srt=(a,b)=>(order[a.status]??9)-(order[b.status]??9)||a.name.localeCompare(b.name);
+  const card=p=>{const st=patternStatus(p,sm),pc=st.total?Math.round(st.ready/st.total*100):0,cls=p.status==='In progress'?'ip':p.status==='Needs finishing'?'nf':p.status==='Finished'?'fin':'';
+     const cu=coverUrl(p);const th=cu?`<img src="${cu}" alt="" loading="lazy">`:`<div class="doc">${p.assetId?'PDF pattern':'No file yet'}<div class="meta" style="font:14px 'Nunito Sans'">${esc(p.fileName||'')}</div></div>`;
+     return `<button class="card" data-p="${esc(p.id)}"><div class="thumb">${th}</div><div class="body"><h3>${esc(p.name)}</h3><div class="meta">${esc(p.designer||'Designer not set')}${p.mesh?' · '+esc(p.mesh)+' mesh':''}</div><div><span class="pill ${cls}">${esc(SL(p.status))}</span></div>${st.total?`<div class="meter"><i style="width:${pc}%"></i></div><div class="meta">${st.ready} of ${st.total} threads in stash</div>`:'<div class="meta">No threads listed</div>'}</div></button>`};
+  const grid=list=>`<div class="grid">${list.map(card).join('')}</div>`;
+  const F=folders(),inFolder=S.pmode==='folders'&&S.folder!=null;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.pmode));
+  if(inFolder&&!F.has(S.folder)&&P.length)S.folder=null;
+  let html;
+  if(!P.length)html=`<div class="empty"><h2>Your pattern library is empty</h2><p>Add your first canvas or chart — upload the PDF or a photo, then list the threads it calls for.</p><button class="pri" data-act="addP">+ Add pattern</button></div>`;
+  else if(S.pmode==='folders'&&S.folder!=null){const f=F.get(S.folder),ps=f.list.filter(match).sort(srt);
+    html=`<div class="crumb"><button class="ghost sm" data-act="up">← All designers</button><h2>${esc(f.name)}</h2><span class="meta">${f.list.length} pattern${f.list.length>1?'s':''}</span>${S.folder?'<button class="ghost sm" data-act="ren">Rename folder</button>':''}${S.assets?'<button class="ghost sm" data-act="fedit">Edit folder image</button>':''}<span style="flex:1"></span><button class="pri sm" data-act="addP">+ Add to this folder</button></div>`
+      +(ps.length?grid(ps):`<div class="empty"><p>No patterns in this folder match.</p></div>`)}
+  else if(S.pmode==='all'||qp){const ps=P.filter(match).sort(srt);html=(qp&&S.pmode==='folders'?`<p class="meta" style="margin:0 0 12px">Matches across all designers</p>`:'')+(ps.length?grid(ps):`<div class="empty"><p>No patterns match that search.</p></div>`)}
+  else{const fl=[...F.entries()].map(([k,f])=>({k,...f,shown:f.list.filter(match)})).filter(f=>!fs||f.shown.length).sort((a,b)=>(a.k==='')-(b.k==='')||a.name.localeCompare(b.name));
+    html=!fl.length?`<div class="empty"><p>No patterns with that status.</p></div>`:`<div class="grid">${fl.map(f=>{const fm=fmeta(f.k),fc=fm?.coverId,imgs=fc?[]:f.list.filter(p=>coverUrl(p)).slice(0,4);
+      const ip=f.list.filter(p=>p.status==='In progress'||p.status==='Needs finishing').length;
+      const th=fc?fimg(fm,blobUrl(fc)):imgs.length?`<div class="mosaic n${imgs.length}">${imgs.map(p=>`<img src="${coverUrl(p)}" alt="" loading="lazy">`).join('')}</div>`:`<svg class="folder" viewBox="0 0 120 90" aria-hidden="true"><path d="M8 18a6 6 0 0 1 6-6h30l8 9h54a6 6 0 0 1 6 6v49a6 6 0 0 1-6 6H14a6 6 0 0 1-6-6z" fill="var(--plum)"/><path d="M8 32h104v44a6 6 0 0 1-6 6H14a6 6 0 0 1-6-6z" fill="var(--plum)" opacity=".75"/><text x="60" y="66" text-anchor="middle" font-family="DM Serif Display,serif" font-size="26" fill="#fff">${esc((f.name[0]||'?').toUpperCase())}</text></svg>`;
+      return `<div class="fwrap"><button class="card" data-f="${esc(f.k)}"><div class="thumb"${hex(fm?.bg)&&!fc?` style="background:${hex(fm.bg)}"`:''}>${th}</div><div class="body"><h3>${esc(f.name)}</h3><div class="meta">${fs?`${f.shown.length} of `:''}${f.list.length} pattern${f.list.length>1?'s':''}${ip?` · ${ip} in progress`:''}</div></div></button>${S.assets?`<button class="fedit sm" data-fedit="${esc(f.k)}" aria-label="Edit image for ${esc(f.name)}">Edit image</button>`:''}</div>`}).join('')}</div>`}
+  $('#pList').innerHTML=html;
+  // WIP
+  const missOf=p=>(p.threads||[]).filter(t=>t.brand||t.code).map(t=>{const have=+(sm.get(key(t.brand,t.code))?.qty||0),need=+t.qty||1;return have<need?{t,have,need}:null}).filter(Boolean);
+  const missHtml=ms=>ms.length?`<div class="miss"><b>Still need:</b>${ms.map(m=>`<div>${esc(m.t.brand)} ${esc(m.t.code)}${m.t.name?` <span class="meta">${esc(m.t.name)}</span>`:''} \u2014 ${m.need-m.have}${m.have?' more':''}</div>`).join('')}</div>`:'';
+  const qw=$('#qW').value.trim().toLowerCase(),isW=p=>p.status==='In progress'||p.status==='Needs finishing',allW=P.filter(isW);
+  const W=allW.filter(p=>!qw||[p.name,p.designer,p.notes].join(' ').toLowerCase().includes(qw)).sort((a,b)=>a.name.localeCompare(b.name));
+  const Wst=W.filter(p=>p.status==='In progress'),Wnf=W.filter(p=>p.status==='Needs finishing');
+  const nS=allW.filter(p=>p.status==='In progress').length,nF=allW.length-nS;
+  $('#cW').textContent=allW.length||'';
+  const wcard=(p,btns)=>`<div class="almost">${card(p)}${p.status==='In progress'?missHtml(missOf(p)):(p.notes?`<div class="miss" style="color:var(--mute)"><b>Notes:</b><div>${esc(p.notes.length>140?p.notes.slice(0,140)+'…':p.notes)}</div></div>`:'')}<div class="acts">${btns}</div></div>`;
+  const sec=(title,sub,list,btns,emptyMsg)=>`<div class="group"><h2>${title}${list.length?` <span class="meta" style="font:16px 'Nunito Sans'">${list.length}</span>`:''}</h2><p class="meta" style="margin:-4px 0 12px">${sub}</p>${list.length?`<div class="grid">${list.map(p=>wcard(p,btns(p))).join('')}</div>`:`<div class="empty" style="padding:22px"><p>${emptyMsg}</p></div>`}</div>`;
+  $('#wList').innerHTML=!allW.length?`<div class="empty"><h2>Nothing on the needle</h2><p>Patterns marked “Stitching” or “Stitched – needs finishing” show up here. Start one from the Ready to stitch tab, or change a pattern’s status.</p><a class="btn pri" href="#ready">See what’s ready</a></div>`
+   :!W.length?`<div class="empty"><p>No works in progress match that search.</p></div>`
+   :sec('On the needle','Currently stitching.',Wst,p=>`<button class="sm pri" data-setst="${esc(p.id)}" data-st="Needs finishing">Done stitching</button>`,qw?'No matches.':'Nothing on the needle right now.')
+   +sec('Stitched – needs finishing','Stitching is done; waiting to be made into an ornament, pillow, etc. or sent to a finisher.',Wnf,p=>`<button class="sm pri" data-setst="${esc(p.id)}" data-st="Finished">Mark finished</button><button class="sm ghost" data-setst="${esc(p.id)}" data-st="In progress">Back to stitching</button>`,qw?'No matches.':'Nothing waiting for finishing.');
+  // ready to stitch
+  const qr=$('#qR').value.trim().toLowerCase(),rw=$('#rW').checked;
+  const cand=P.filter(p=>p.status!=='Finished'&&p.status!=='Needs finishing'&&(rw||p.status!=='Wishlist')&&(!qr||[p.name,p.designer].join(' ').toLowerCase().includes(qr)));
+  const info=cand.map(p=>{const ts=(p.threads||[]).filter(t=>t.brand||t.code);const miss=ts.map(t=>{const have=+(sm.get(key(t.brand,t.code))?.qty||0),need=+t.qty||1;return have<need?{t,have,need}:null}).filter(Boolean);return{p,total:ts.length,miss}});
+  const ready=info.filter(x=>x.total&&!x.miss.length).map(x=>x.p).sort(srt),almost=info.filter(x=>x.total&&x.miss.length&&x.miss.length<=2).sort((a,b)=>a.miss.length-b.miss.length||srt(a.p,b.p)),unl=info.filter(x=>!x.total).length;
+  const allReady=P.filter(p=>p.status!=='Finished'&&p.status!=='Needs finishing'&&(rw||p.status!=='Wishlist')).filter(p=>{const ts=(p.threads||[]).filter(t=>t.brand||t.code);return ts.length&&ts.every(t=>+(sm.get(key(t.brand,t.code))?.qty||0)>=(+t.qty||1))}).length;
+  $('#cR').textContent=allReady||'';
+  $('#rList').innerHTML=!P.length?`<div class="empty"><h2>No patterns yet</h2><p>Add patterns with their thread lists, and the ones you can start from your stash show up here.</p></div>`
+   :`<div class="group"><h2>Ready to stitch${ready.length?` <span class="meta" style="font:16px 'Nunito Sans'">${ready.length}</span>`:''}</h2><p class="meta" style="margin:-4px 0 12px">Every thread these patterns call for is in your stash.</p>${ready.length?`<div class="grid">${ready.map(p=>`<div class="almost">${card(p)}${p.status!=='In progress'?`<div class="acts"><button class="sm pri" data-setst="${esc(p.id)}" data-st="In progress">Start stitching</button></div>`:'<div class="acts meta">Already on the needle</div>'}</div>`).join('')}</div>`:`<div class="empty" style="padding:24px"><p>Nothing is fully covered by your stash yet${almost.length?' — see what’s close below':''}.</p></div>`}</div>`
+   +(almost.length?`<div class="group"><h2>Almost there</h2><p class="meta" style="margin:-4px 0 12px">Missing just one or two threads.</p><div class="grid">${almost.map(x=>`<div class="almost">${card(x.p)}<div class="miss"><b>Still need:</b>${x.miss.map(m=>`<div>${esc(m.t.brand)} ${esc(m.t.code)}${m.t.name?` <span class="meta">${esc(m.t.name)}</span>`:''} — ${m.need-m.have}${m.have?` more`:''}</div>`).join('')}</div></div>`).join('')}</div></div>`:'')
+   +(unl?`<p class="meta" style="margin-top:22px">${unl} pattern${unl>1?'s have':' has'} no threads listed yet, so ${unl>1?'they aren’t':'it isn’t'} counted here. Open ${unl>1?'them':'it'} and add the threads, or use Read threads from pattern.</p>`:'');
+  // stash
+  const qt=$('#qT').value.trim().toLowerCase();
+  const ts=T.filter(t=>!qt||[t.brand,t.code,t.name].join(' ').toLowerCase().includes(qt)).sort((a,b)=>a.brand.localeCompare(b.brand)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true}));
+  const groups={};for(const t of ts)(groups[t.brand]=groups[t.brand]||[]).push(t);
+  $('#tList').innerHTML=!T.length?`<div class="empty"><h2>No threads in your stash yet</h2><p>Add them one at a time, or paste a whole list at once.</p><button class="pri" data-act="addT">+ Add thread</button></div>`
+   :!ts.length?`<div class="empty"><p>No threads match that search.</p></div>`
+   :Object.entries(groups).map(([b,list])=>`<div class="group"><h2>${esc(b)}</h2><div class="rows">${list.map(t=>`<div class="row"><span class="spool" style="background:${/^#[0-9a-f]{6}$/i.test(t.color)?t.color:'#ccc'}"></span><button class="ghost" style="border:0;justify-content:flex-start;padding:0;text-align:left;white-space:normal;display:block" data-t="${esc(t.id)}"><b>${esc(t.code)}</b> <span class="meta">${esc(t.name||'')}</span></button><div class="qty"><button class="sm" data-dec="${esc(t.id)}" aria-label="One fewer">−</button><output>${+t.qty||0}</output><button class="sm" data-inc="${esc(t.id)}" aria-label="One more">+</button></div></div>`).join('')}</div></div>`).join('');
+  // shopping
+  const ng={};for(const n of N)(ng[n.brand]=ng[n.brand]||[]).push(n);
+  $('#nList').innerHTML=!N.length?`<div class="empty"><h2>Nothing to buy</h2><p>${pats().length?'Your stash covers every active pattern.':'Add patterns with their thread lists and anything you’re missing shows up here.'}</p></div>`
+   :Object.entries(ng).map(([b,list])=>`<div class="group"><h2>${esc(b)}</h2><div class="rows">${list.map(n=>`<div class="row"><span class="spool" style="background:${/^#[0-9a-f]{6}$/i.test(n.col||'')?n.col:'var(--line)'}"></span><div><b>${esc(n.code)}</b> <span class="meta">${esc(n.name||'')}</span><div class="meta">Buy ${n.buy} · need ${n.qty}, have ${n.have} · for ${esc([...new Set(n.pats)].join(', '))}</div></div><div class="qty"><button class="sm pri" data-buy="${esc(n.k)}">Bought it</button></div></div>`).join('')}</div></div>`).join('');
+}
+
+/* ---- views ---- */
+function route(){const v=(location.hash||'#patterns').slice(1);S.view=['patterns','wip','ready','stash','shopping'].includes(v)?v:'patterns';
+  for(const s of['patterns','wip','ready','stash','shopping'])$('#v-'+s).hidden=s!==S.view;
+  document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.dataset.v===S.view))}
+addEventListener('hashchange',route);
+
+/* ---- confirm ---- */
+function confirmBox(msg,sub){return new Promise(r=>{const d=$('#dC');$('#cMsg').textContent=msg;$('#cSub').textContent=sub||'';d.returnValue='';d.onclose=()=>r(d.returnValue==='yes');d.showModal()})}
+
+/* ---- pattern editor ---- */
+function rowHtml(r,i,sm){const s=sm.get(key(r.brand,r.code)),have=+(s?.qty||0),need=+r.qty||1;
+  const st=!(r.brand||r.code)?'':have>=need?`<span class="have">In stash (${have})</span>`:`<span class="short">Need ${need-have} more${have?` — you have ${have}`:''}</span>`;
+  return `<div class="trow${r._new?' new':''}" data-i="${i}"><input placeholder="Brand" list="brL" value="${esc(r.brand)}" data-f="brand" aria-label="Brand"><input placeholder="No." value="${esc(r.code)}" data-f="code" aria-label="Color number"><input class="nm" placeholder="Color name / where used" value="${esc(r.name)}" data-f="name" aria-label="Color name"><input type="number" min="1" inputmode="numeric" value="${esc(r.qty||1)}" data-f="qty" aria-label="Quantity"><button type="button" class="ghost sm" data-rm="${i}" aria-label="Remove thread">✕</button><div class="st">${st}</div></div>`}
+function drawRows(){const sm=stashMap();$('#tRows').innerHTML=S.rows.length?S.rows.map((r,i)=>rowHtml(r,i,sm)).join(''):'<p class="meta" style="margin:0">No threads yet — add each fiber the stitch guide calls for.</p>'}
+function openP(id){const p=id?S.items.get(id):null;S.editP=id||null;
+  $('#dPt').textContent=p?p.name:'New pattern';$('#pName').value=p?.name||'';$('#pDes').value=p?p.designer||'':(S.pmode==='folders'&&S.folder?folders().get(S.folder)?.name||'':'');$('#pStat').value=p?.status||'Not started';$('#pMesh').value=p?.mesh||'';$('#pNotes').value=p?.notes||'';$('#pFile').value='';
+  $('#pFile').disabled=!S.assets;$('#delP').hidden=!p;
+  $('#readRow').hidden=!S.sample;$('#readSt').textContent='Claude reads the stitch guide and fills in the thread list for you to check.';$('#readBtn').disabled=false;$('#readStop').hidden=true;
+  S.rows=(p?.threads||[]).map(t=>({...t}));drawRows();
+  if(S.cov?.url)URL.revokeObjectURL(S.cov.url);S.cov={blob:null,url:'',remove:false};drawCov();$('#covSt').textContent='Shown on the pattern card and its folder.';
+  const u=p&&fileUrl(p);
+  $('#pv').innerHTML=!u?'':/^image\//.test(p.fileType||'')?`<div class="preview"><img src="${u}" alt="Pattern image"></div><a class="btn ghost" href="${u}" target="_blank" rel="noopener">Open full size</a>`
+   :`<div class="preview"><iframe src="${u}" title="Pattern PDF"></iframe></div><a class="btn pri" href="${u}" target="_blank" rel="noopener">Open PDF full screen</a> <span class="meta">${esc(p.fileName||'')}</span>`;
+  $('#dP').showModal()}
+$('#tRows').addEventListener('input',e=>{const f=e.target.dataset.f,i=+e.target.closest('.trow')?.dataset.i;if(f!=null&&S.rows[i])S.rows[i][f]=e.target.value});
+$('#tRows').addEventListener('change',e=>{const row=e.target.closest('.trow');if(!row||!e.target.dataset.f)return;const i=+row.dataset.i,tmp=document.createElement('div');tmp.innerHTML=rowHtml(S.rows[i],i,stashMap());row.querySelector('.st').innerHTML=tmp.querySelector('.st').innerHTML});
+$('#tRows').addEventListener('click',e=>{const r=e.target.dataset.rm;if(r!=null){S.rows.splice(+r,1);drawRows()}});
+$('#addR').onclick=()=>{S.rows.push({brand:S.rows.at(-1)?.brand||'',code:'',name:'',qty:1});drawRows();const ins=$('#tRows').querySelectorAll('.trow:last-of-type input');(ins[1]||ins[0])?.focus()};
+$('#fP').addEventListener('submit',async e=>{e.preventDefault();const name=$('#pName').value.trim();if(!name){$('#pName').focus();return}
+  const old=S.editP?S.items.get(S.editP):{};const id=S.editP||nid('p');
+  const data={kind:'pattern',name,designer:$('#pDes').value.trim(),status:$('#pStat').value,mesh:$('#pMesh').value,notes:$('#pNotes').value,
+    threads:S.rows.filter(r=>r.brand||r.code||r.name).map(r=>({brand:String(r.brand||'').trim(),code:String(r.code||'').trim(),name:String(r.name||'').trim(),qty:Math.max(1,+r.qty||1)})),
+    coverId:old.coverId||'',assetId:old.assetId||'',fileName:old.fileName||'',fileType:old.fileType||'',created:old.created||Date.now()};
+  const f=$('#pFile').files[0];
+  if(f&&S.assets){if(f.size>20*1024*1024){toast('That file is over 20 MB — try a smaller export');return}
+    $('#saveP').disabled=true;$('#saveP').textContent='Uploading…';
+    try{const a=await S.assets.upload(f);data.assetId=a.id;data.fileName=f.name;data.fileType=a.contentType||f.type;
+      if(old.assetId&&old.assetId!==a.id)S.assets.delete(old.assetId).catch(()=>{})}
+    catch(err){toast('Upload failed — the pattern was not saved');$('#saveP').disabled=false;$('#saveP').textContent='Save pattern';return}
+    $('#saveP').disabled=false;$('#saveP').textContent='Save pattern'}
+  if(S.cov.blob&&S.assets){$('#saveP').disabled=true;$('#saveP').textContent='Uploading cover…';
+    try{const a=await S.assets.upload(S.cov.blob);data.coverId=a.id;if(old.coverId)S.assets.delete(old.coverId).catch(()=>{})}
+    catch{toast('Cover photo upload failed — the pattern was not saved');$('#saveP').disabled=false;$('#saveP').textContent='Save pattern';return}
+    $('#saveP').disabled=false;$('#saveP').textContent='Save pattern'}
+  else if(S.cov.remove){data.coverId='';if(old.coverId&&S.assets)S.assets.delete(old.coverId).catch(()=>{})}
+  save(id,data);$('#dP').close();toast('Pattern saved')});
+$('#delP').onclick=async()=>{const p=S.items.get(S.editP);if(!p)return;$('#dP').close();
+  if(await confirmBox(`Delete “${p.name}”?`,p.assetId?'This also removes the uploaded file. It can’t be undone.':'This can’t be undone.')){if(S.assets){if(p.assetId)S.assets.delete(p.assetId).catch(()=>{});if(p.coverId)S.assets.delete(p.coverId).catch(()=>{})}del(p.id);toast('Pattern deleted')}};
+
+/* ---- cover photos ---- */
+const isPdfNow=()=>{const f=$('#pFile').files[0];if(f)return /pdf/.test(f.type)||/\.pdf$/i.test(f.name);const p=S.editP&&S.items.get(S.editP);return !!(p?.assetId&&(/pdf/.test(p.fileType||'')||/\.pdf$/i.test(p.fileName||'')))};
+function drawCov(){const p=S.editP&&S.items.get(S.editP);const src=S.cov.url||(!S.cov.remove&&p?.coverId?blobUrl(p.coverId):'');
+  const fallback=!src&&!S.cov.remove&&p?coverUrl(p):'';
+  $('#covPv').innerHTML=src?`<img src="${src}" alt="Cover photo">`:fallback?`<img src="${fallback}" alt="Pattern photo">`:'<span class="meta">No cover</span>';
+  $('#covRm').hidden=!src;$('#covPdf').hidden=!isPdfNow();$('#covPick').textContent=src?'Change photo':'Choose photo';
+  for(const id of['covPick','covPdf'])$('#'+id).disabled=!S.assets}
+function setCov(blob,msg){if(S.cov.url)URL.revokeObjectURL(S.cov.url);S.cov={blob,url:URL.createObjectURL(blob),remove:false};drawCov();$('#covSt').textContent=msg||'New cover — tap Save pattern to keep it.'}
+async function patternBlob(){const p=S.editP?S.items.get(S.editP):null;let blob=$('#pFile').files[0]||null,ftype=blob?.type||'',fname=blob?.name||'';
+  if(!blob&&p?.assetId){const r=await fetch(fileUrl(p)).catch(()=>null);if(!r||!r.ok)throw{code:'fetch'};blob=await r.blob();ftype=p.fileType||blob.type;fname=p.fileName||''}
+  return{blob,ftype,fname}}
+$('#covPick').onclick=()=>$('#pCover').click();
+$('#pCover').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;if(f.size>20*1024*1024){toast('That photo is over 20 MB');return}setCov(f)};
+$('#covRm').onclick=()=>{if(S.cov.url)URL.revokeObjectURL(S.cov.url);S.cov={blob:null,url:'',remove:true};drawCov();$('#covSt').textContent='Cover removed — tap Save pattern to keep the change.'};
+$('#covPdf').onclick=async()=>{const b=$('#covPdf');b.disabled=true;$('#covSt').textContent='Making a cover from page 1…';
+  try{const{blob}=await patternBlob();if(!blob)throw{code:'fetch'};const lib=await pdfjs();let doc;try{doc=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer()),isEvalSupported:false}).promise}catch{throw{code:'pdf'}}
+    const img=await renderPage(doc,1);if(!img)throw{code:'pdf'};setCov(img,'Page 1 will be the cover — tap Save pattern to keep it.')}
+  catch(e){$('#covSt').textContent=e?.code==='pdf_lib'?'The PDF reader couldn’t load. Check your connection.':e?.code==='fetch'?'Couldn’t open the saved PDF. Choose the file again above.':'That PDF couldn’t be turned into a cover.'}
+  finally{b.disabled=false}};
+$('#pFile').addEventListener('change',drawCov);
+/* ---- folder image editor ---- */
+const SWS=['#ffffff','#f6e4ec','#fbf3e2','#e3eef6','#7a1f4f','#221b26'];
+let FE=null;
+function openF(k){const f=folders().get(k);if(!f)return;const m=fmeta(k);
+  if(FE?.url)URL.revokeObjectURL(FE.url);
+  FE={k,name:f.name,blob:null,url:'',remove:false,coverId:m?.coverId||'',fit:m?.fit==='cover'?'cover':m?.coverId?'cover':'contain',bg:hex(m?.bg)||'#ffffff'};
+  if(m?.fit)FE.fit=m.fit==='cover'?'cover':'contain';
+  $('#dFt').textContent=f.name;$('#fSt').textContent='Use the designer’s logo, a favorite canvas, or any photo.';drawF();$('#dF').showModal()}
+function drawF(){const src=FE.url||(!FE.remove&&FE.coverId?blobUrl(FE.coverId):'');
+  const pv=$('#fPrev');pv.style.background=FE.bg;
+  pv.innerHTML=src?`<img src="${src}" alt="Folder image preview" class="fimg ${FE.fit}" style="background:${FE.bg}">`:`<span class="meta" style="color:${FE.bg==='#7a1f4f'||FE.bg==='#221b26'?'#fff':''}">No image</span>`;
+  $('#fRm').hidden=!src;$('#fPick').textContent=src?'Change image':'Choose image';
+  document.querySelectorAll('[data-fit]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fit===FE.fit));
+  $('#fSw').innerHTML=SWS.map(c=>`<button type="button" class="sw" data-sw="${c}" style="background:${c}" aria-label="Background ${c}" aria-pressed="${c===FE.bg}"></button>`).join('')+`<input type="color" id="fBg" value="${FE.bg}" aria-label="Custom background color">`;
+  $('#fBg').oninput=e=>{FE.bg=hex(e.target.value)||'#ffffff';drawF()}}
+$('#fPick').onclick=()=>$('#fCover').click();
+$('#fCover').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f||!FE)return;if(f.size>20*1024*1024){$('#fSt').textContent='That image is over 20 MB.';return}
+  if(FE.url)URL.revokeObjectURL(FE.url);FE.blob=f;FE.url=URL.createObjectURL(f);FE.remove=false;
+  if(/png|svg|gif|webp/.test(f.type))FE.fit='contain';$('#fSt').textContent='Looks good? Tap Save.';drawF()};
+$('#fRm').onclick=()=>{if(FE.url)URL.revokeObjectURL(FE.url);FE.blob=null;FE.url='';FE.remove=true;drawF()};
+$('#dF').addEventListener('click',e=>{const b=e.target.closest('[data-fit],[data-sw]');if(!b)return;if(b.dataset.fit)FE.fit=b.dataset.fit;if(b.dataset.sw)FE.bg=b.dataset.sw;drawF()});
+$('#fF').addEventListener('submit',async e=>{e.preventDefault();if(!FE)return;const old=fmeta(FE.k);let coverId=FE.remove?'':FE.coverId;
+  if(FE.blob){if(!S.assets){toast('Uploads aren’t available here');return}$('#fSave').disabled=true;$('#fSave').textContent='Uploading…';
+    try{coverId=(await S.assets.upload(FE.blob)).id}catch{$('#fSt').textContent='Upload failed — try again.';$('#fSave').disabled=false;$('#fSave').textContent='Save';return}
+    $('#fSave').disabled=false;$('#fSave').textContent='Save'}
+  if(old?.coverId&&old.coverId!==coverId&&S.assets)S.assets.delete(old.coverId).catch(()=>{});
+  save(fid(FE.k),{kind:'folder',key:FE.k,coverId,fit:FE.fit,bg:FE.bg});$('#dF').close();toast('Folder image saved')});
+
+/* ---- read threads from the pattern with Claude ---- */
+const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+const loadScript=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej({code:'pdf_lib'});document.head.append(s)});
+async function pdfjs(){if(window.pdfjsLib)return window.pdfjsLib;
+  await loadScript(PDFJS+'pdf.worker.min.js'); // runs pdf.js on the page itself (no separate worker)
+  await loadScript(PDFJS+'pdf.min.js');const lib=window.pdfjsLib;lib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js';return lib}
+async function renderPage(doc,i){const pg=await doc.getPage(i),v1=pg.getViewport({scale:1}),sc=Math.min(3,1800/Math.max(v1.width,v1.height)),vp=pg.getViewport({scale:sc});
+  const c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+  await pg.render({canvasContext:ctx,viewport:vp}).promise;return await new Promise(r=>c.toBlob(r,'image/jpeg',.86))}
+const RX=/dmc|silk|thread|fib|floss|kreinik|braid|wool|pearl|perle|appleton|splendor|neon|ivory|planet|vineyard|colou?r|stitch guide|#\s?\d/gi;
+const readMsg={not_granted:'Claude isn’t allowed for this page. Reopen it and choose Allow to use this.',sampling_disabled:'Claude isn’t available on this account.',rate_limited:'You’ve hit a usage limit or Claude is busy. Try again in a little while.',
+  invalid_json:'Claude couldn’t turn that into a thread list. Try again.',empty_completion:'Claude couldn’t find a thread list. Try again.',image_rejected:'That image couldn’t be read. Try a clearer photo.',
+  prompt_too_large:'That pattern is too long to read in one go.',pdf_lib:'The PDF reader couldn’t load. Check your connection.',fetch:'Couldn’t open the saved file. Choose the file again above, then retry.',
+  pdf:'That PDF couldn’t be opened. If it’s password-protected, save an unlocked copy.',session_expired:'Sign in to claude.ai again, then retry.'};
+let readCtl=null;
+async function readThreads(){const st=$('#readSt'),btn=$('#readBtn'),stop=$('#readStop');if(!S.sample)return;
+  btn.disabled=true;stop.hidden=false;readCtl=new AbortController();const sig=readCtl.signal;
+  try{st.textContent='Opening the pattern…';let{blob,ftype,fname}=await patternBlob();
+    if(!blob){st.textContent='Choose the pattern file above first.';return}
+    const lim=await S.sample.limits().catch(()=>null),maxImg=lim?.images?.maxCount||0;
+    let text='',images=[];
+    if(/pdf/.test(ftype)||/\.pdf$/i.test(fname)){st.textContent='Reading the PDF…';const lib=await pdfjs();
+      let doc;try{doc=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer()),isEvalSupported:false}).promise}catch{throw{code:'pdf'}}
+      const pages=[];for(let i=1;i<=Math.min(doc.numPages,40);i++){if(sig.aborted)throw{code:'cancelled'};const tc=await (await doc.getPage(i)).getTextContent();
+        const t=tc.items.map(x=>x.str+(x.hasEOL?'\n':' ')).join('').replace(/[ \t]+/g,' ');pages.push({i,t,score:(t.match(RX)||[]).length})}
+      text=pages.map(x=>`--- Page ${x.i} ---\n${x.t.trim()}`).join('\n').slice(0,150000);
+      const hasText=text.replace(/\s|---|Page \d+/g,'').length>300;
+      if(maxImg){const n=Math.min(maxImg,hasText?3:6);const pick=[...pages].sort((a,b)=>b.score-a.score||a.i-b.i).slice(0,n).sort((a,b)=>a.i-b.i);
+        for(const x of pick){if(sig.aborted)throw{code:'cancelled'};st.textContent=`Looking at page ${x.i}…`;const b=await renderPage(doc,x.i);if(b)images.push(b)}}
+      if(!hasText&&!images.length){st.textContent='This PDF has no readable text and images can’t be sent from here.';return}
+    }else if(/^image\//.test(ftype||blob.type)){if(!maxImg){st.textContent='Reading photos isn’t available in this view.';return}images=[blob]}
+    else{st.textContent='Use a PDF or a photo of the stitch guide.';return}
+    const brands=[...new Set([...thr().map(t=>t.brand),...S.rows.map(r=>r.brand)].filter(Boolean))].slice(0,60);
+    const prompt=`You are reading a needlepoint pattern or stitch guide${fname?` ("${fname}")`:''}. List every thread or fiber it calls for.
+Reply with only a JSON array of objects: {"brand": string, "code": string, "name": string, "qty": number}.
+- brand: the maker and fiber line as written, e.g. "DMC Pearl Cotton #5", "Silk & Ivory", "Kreinik #12 Braid", "Rainbow Gallery Neon Rays".${brands.length?`\n- When a thread is one of these brands, spell the brand exactly like this: ${brands.join('; ')}.`:''}
+- code: the color number exactly as written (keep leading zeros and letters).
+- name: the color name, or briefly where it is used if no color name is given.
+- qty: number of cards, skeins or spools called for; 1 if not stated.
+- One entry per distinct brand + color number; add up quantities for repeats. Ignore canvas, needles and other supplies.
+- If the pattern lists no threads, reply [].
+Example: [{"brand":"Silk & Ivory","code":"01","name":"Snow","qty":1}]
+${images.length?`${images.length} page image(s) of the pattern are attached; read color keys and legends in them.\n`:''}${text?`\nText extracted from the PDF:\n${text}`:''}`;
+    st.textContent='Claude is reading the thread list… this can take up to a minute.';
+    const res=await S.sample.json(prompt,{signal:sig,...(images.length?{images}:{})});
+    const list=(Array.isArray(res)?res:Array.isArray(res?.threads)?res.threads:[]).filter(x=>x&&typeof x==='object');
+    S.rows=S.rows.filter(r=>r.brand||r.code||r.name);const have=new Set(S.rows.map(r=>key(r.brand,r.code)));let added=0;
+    for(const x of list){const r={brand:String(x.brand??'').trim().slice(0,80),code:String(x.code??'').trim().slice(0,40),name:String(x.name??'').trim().slice(0,120),qty:Math.max(1,Math.round(+x.qty)||1),_new:true};
+      if(!r.brand&&!r.code)continue;const k=key(r.brand,r.code);if(have.has(k))continue;have.add(k);S.rows.push(r);added++}
+    drawRows();
+    st.textContent=!list.length?'Claude didn’t find any threads in this file.':added?`Added ${added} thread${added>1?'s':''} (outlined in teal). Check them against the pattern, then Save pattern.`:'Every thread Claude found is already listed.';
+  }catch(e){st.textContent=e?.code==='cancelled'?'Stopped.':(readMsg[e?.code]||'Something went wrong reading the pattern. Try again.');if(e?.code==='not_granted'||e?.code==='sampling_disabled')$('#readBtn').hidden=true}
+  finally{btn.disabled=false;stop.hidden=true;readCtl=null}}
+$('#readBtn').onclick=readThreads;$('#readStop').onclick=()=>readCtl?.abort();
+$('#dP').addEventListener('close',()=>readCtl?.abort());
+
+/* ---- rename folder ---- */
+$('#fR').addEventListener('submit',e=>{e.preventDefault();const nn=$('#rName').value.trim();if(!nn)return;const ok=S.folder,f=folders().get(ok);if(!f)return;const nk=nn.toLowerCase(),om=fmeta(ok);S.folder=nk;
+  for(const p of f.list)if(p.designer!==nn)save(p.id,{...p,designer:nn});
+  if(om&&nk!==ok){if(!fmeta(nk))save(fid(nk),{kind:'folder',key:nk,coverId:om.coverId,fit:om.fit||'',bg:om.bg||''});else if(S.assets&&om.coverId)S.assets.delete(om.coverId).catch(()=>{});del(om.id)}S.folder=nk;$('#dR').close();render();toast('Folder renamed')});
+
+/* ---- thread editor ---- */
+function openT(id,pre){const t=id?S.items.get(id):pre||null;S.editT=id||null;$('#dTt').textContent=id?'Edit thread':'Add thread';
+  $('#tBrand').value=t?.brand||'';$('#tCode').value=t?.code||'';$('#tName').value=t?.name||'';$('#tCol').value=/^#[0-9a-f]{6}$/i.test(t?.color||'')?t.color:'#b84a7a';$('#tQty').value=t?.qty??1;$('#delT').hidden=!id;$('#dT').showModal()}
+$('#fT').addEventListener('submit',e=>{e.preventDefault();const brand=$('#tBrand').value.trim(),code=$('#tCode').value.trim();if(!brand||!code)return;
+  const dup=stashMap().get(key(brand,code));let id=S.editT;
+  if(!id&&dup){id=dup.id}
+  const old=id?S.items.get(id):{};
+  save(id||nid('t'),{kind:'thread',brand,code,name:$('#tName').value.trim(),color:$('#tCol').value,qty:Math.max(0,+$('#tQty').value||0),created:old.created||Date.now()});
+  $('#dT').close();toast(!S.editT&&dup?'Already in stash — updated it':'Thread saved')});
+$('#delT').onclick=async()=>{const t=S.items.get(S.editT);if(!t)return;$('#dT').close();if(await confirmBox(`Remove ${t.brand} ${t.code}?`,'It comes off your stash list.')){del(t.id);toast('Thread removed')}};
+
+/* ---- bulk paste ---- */
+$('#fB').addEventListener('submit',e=>{e.preventDefault();const sm=stashMap();let n=0;
+  for(const line of $('#bTxt').value.split(/\n/)){const p=line.split(/[,\t]/).map(s=>s.trim());if(p.length<2||!p[0]||!p[1])continue;
+    const qty=Math.max(0,parseInt(p[3]??p[2])||(isNaN(parseInt(p[2]))?1:0)),name=isNaN(parseInt(p[2]))?(p[2]||''):'';
+    const ex=sm.get(key(p[0],p[1]));
+    if(ex){const d={...ex,qty:(+ex.qty||0)+qty};sm.set(key(p[0],p[1]),d);save(ex.id,d)}
+    else{const id=nid('t'),d={kind:'thread',brand:p[0],code:p[1],name,color:'#cccccc',qty,created:Date.now()};sm.set(key(p[0],p[1]),{...d,id});save(id,d)}n++}
+  $('#bTxt').value='';$('#dB').close();toast(n?`Added ${n} thread${n>1?'s':''}`:'No lines read — use brand, number, name, qty')});
+
+/* ---- clicks ---- */
+document.addEventListener('click',async e=>{const b=e.target.closest('button,[data-close]');if(!b)return;
+  if(b.dataset.close!=null){b.closest('dialog').close();return}
+  if(b.dataset.mode){S.pmode=b.dataset.mode;S.folder=null;try{localStorage.setItem('pmode',S.pmode)}catch{};render();return}
+  if(b.dataset.f!=null){S.folder=b.dataset.f;$('#qP').value='';render();scrollTo({top:0});return}
+  if(b.dataset.act==='up'){S.folder=null;render();return}
+  if(b.dataset.fedit!=null){openF(b.dataset.fedit);return}
+  if(b.dataset.act==='fedit'){openF(S.folder);return}
+  if(b.dataset.act==='ren'){$('#rName').value=folders().get(S.folder)?.name||'';$('#dR').showModal();return}
+  if(b.dataset.setst){const p=S.items.get(b.dataset.setst);if(!p)return;const st=b.dataset.st;save(p.id,{...p,status:st});toast(st==='Finished'?`\u201c${p.name}\u201d marked finished \u2014 congrats!`:st==='Needs finishing'?`\u201c${p.name}\u201d is stitched \u2014 on to finishing`:`\u201c${p.name}\u201d is on the needle`);return}
+  if(b.dataset.p)openP(b.dataset.p);
+  else if(b.dataset.t)openT(b.dataset.t);
+  else if(b.dataset.act==='addP')openP();
+  else if(b.dataset.act==='addT')openT();
+  else if(b.dataset.inc||b.dataset.dec){const id=b.dataset.inc||b.dataset.dec,t=S.items.get(id);saveSoon(id,{...t,qty:Math.max(0,(+t.qty||0)+(b.dataset.inc?1:-1))})}
+  else if(b.dataset.buy){const n=shopping().find(x=>x.k===b.dataset.buy);if(!n)return;const ex=stashMap().get(n.k);
+    if(ex)save(ex.id,{...ex,qty:(+ex.qty||0)+n.buy});else save(nid('t'),{kind:'thread',brand:n.brand,code:n.code,name:n.name||'',color:'#cccccc',qty:n.buy,created:Date.now()});toast(`${n.brand} ${n.code} added to stash`)}});
+$('#addP').onclick=()=>openP();$('#addT').onclick=()=>openT();$('#bulk').onclick=()=>$('#dB').showModal();
+['#qP','#qT','#qR','#qW'].forEach(s=>$(s).addEventListener('input',render));$('#fS').onchange=render;$('#wl').onchange=render;$('#rW').onchange=render;
+$('#copy').onclick=async()=>{const N=shopping();if(!N.length){toast('Nothing to buy');return}
+  const txt=N.map(n=>`${n.brand} ${n.code}${n.name?' ('+n.name+')':''} — buy ${n.buy}`).join('\n');
+  try{await navigator.clipboard.writeText(txt);toast('Shopping list copied')}catch{toast('Copy was blocked by the browser')}};
+
+/* ---- boot ---- */
+route();render();
+(async()=>{const user=await claude.use('user'),db=await claude.use('db');S.assets=await claude.use('assets');S.sample=await claude.use('sample');
+  const uid=user?await user.id():null;
+  if(!db||!uid){note('Sign in to claude.ai to save your library. Anything added now disappears when you leave.');render();return}
+  S.col=db.collection('data/users/'+uid);
+  if(!S.assets)note('File uploads aren’t available in this view — you can still track patterns and threads.');
+  const lt=setTimeout(()=>note('Your library can’t be reached yet — check your connection.'),10000);
+  S.col.onSnapshot(snap=>{if(!snap.metadata.fromCache){clearTimeout(lt);if(S.assets)note('');}
+    const m=new Map();for(const d of snap.docs){const v=d.data();if(v&&(v.kind==='pattern'||v.kind==='thread'||v.kind==='folder'))m.set(d.id,{...v,id:d.id})}
+    for(const id in timers){if(S.items.has(id))m.set(id,S.items.get(id))}
+    S.items=m;render()},err=>{clearTimeout(lt);note('Your library couldn’t load right now. Reopen the page later.')});
+})();
+}</script>
+</body></html>

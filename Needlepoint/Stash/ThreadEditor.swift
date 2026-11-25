@@ -1,18 +1,46 @@
 import SwiftData
 import SwiftUI
 
-/// The Add thread sheet.
+/// What the thread editor sheet opens with.
+enum ThreadEditorRequest: Identifiable {
+    case add
+    case edit(StashThread)
+
+    var id: String {
+        switch self {
+        case .add: "add"
+        case .edit(let thread): "edit:\(thread.id)"
+        }
+    }
+}
+
+/// The Add thread and Edit thread sheet.
 struct ThreadEditor: View {
     private enum Field { case brand, code, name, qty }
+
+    /// The thread being edited, or nil when adding one.
+    let thread: StashThread?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Environment(ToastCenter.self) private var toasts
     @Query private var stash: [StashThread]
 
-    @State private var draft = ThreadDraft()
-    @State private var saveFailed = false
+    @State private var draft: ThreadDraft
+    @State private var errorMessage: String?
+    @State private var confirmingDelete = false
     @FocusState private var focus: Field?
+
+    init(request: ThreadEditorRequest = .add) {
+        switch request {
+        case .add:
+            thread = nil
+            _draft = State(initialValue: ThreadDraft())
+        case .edit(let thread):
+            self.thread = thread
+            _draft = State(initialValue: ThreadDraft(editing: thread))
+        }
+    }
 
     private var brandSuggestions: [String] {
         guard focus == .brand else { return [] }
@@ -63,12 +91,18 @@ struct ThreadEditor: View {
                     quantityRow
                 }
 
-                if saveFailed {
-                    Text("The thread couldn't be saved. Try again.")
+                if let errorMessage {
+                    Text(errorMessage)
                         .foregroundStyle(Color.warn)
                 }
+
+                if thread != nil {
+                    Section {
+                        Button("Remove from stash", role: .destructive) { confirmingDelete = true }
+                    }
+                }
             }
-            .navigationTitle("Add thread")
+            .navigationTitle(thread == nil ? "Add thread" : "Edit thread")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -79,7 +113,18 @@ struct ThreadEditor: View {
                         .disabled(!draft.canSave)
                 }
             }
-            .onAppear { focus = .brand }
+            .onAppear {
+                if thread == nil { focus = .brand }
+            }
+            .confirmationDialog(
+                thread.map { StashDelete.confirmation(for: $0).title } ?? "",
+                isPresented: $confirmingDelete,
+                titleVisibility: .visible
+            ) {
+                Button("Remove", role: .destructive, action: delete)
+            } message: {
+                Text(thread.map { StashDelete.confirmation(for: $0).message } ?? "")
+            }
         }
     }
 
@@ -101,12 +146,25 @@ struct ThreadEditor: View {
 
     private func save() {
         do {
-            let outcome = try draft.save(in: context)
+            let outcome = try draft.save(editing: thread, in: context)
             try context.save()
             toasts.show(outcome.toast)
             dismiss()
+        } catch let error as ThreadDraft.SaveError {
+            errorMessage = error.message
         } catch {
-            saveFailed = true
+            errorMessage = "The thread couldn't be saved. Try again."
+        }
+    }
+
+    private func delete() {
+        guard let thread else { return }
+        do {
+            try StashDelete.delete(thread, in: context)
+            toasts.show(StashDelete.toast)
+            dismiss()
+        } catch {
+            errorMessage = "The thread couldn't be removed. Try again."
         }
     }
 }

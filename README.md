@@ -24,7 +24,7 @@ The app is written in Swift with SwiftUI. It replaces an earlier single-file web
 | Concern                   | Choice                                                                                                                  |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | UI                        | SwiftUI                                                                                                                 |
-| Minimum OS                | iOS / iPadOS 27 (the project's current deployment target)                                                               |
+| Minimum OS                | iOS / iPadOS 18, the first release with the `Tab` API and the sidebar-adaptable tab style                               |
 | Devices                   | iPad first                                                                                                              |
 | Persistence               | SwiftData                                                                                                               |
 | Sync                      | None in the first release, which stores data on the device only. A later release adds SwiftData's CloudKit integration with the private database. No sign-in screen; the user's iCloud account is the identity. |

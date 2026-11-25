@@ -14,26 +14,26 @@ The app is written in Swift with SwiftUI. It replaces an earlier single-file web
 - [ ] WIP tab
 - [ ] Ready to stitch tab
 - [ ] Folder image editor and folder rename
-- [ ] iCloud sync
+- [ ] iCloud sync (after the first release)
 - [ ] "Read threads from pattern"
 - [ ] Import of data exported from the web app
 - [ ] App icon, launch screen, TestFlight build
 
 ## Platform and tech
 
-| Concern | Choice |
-|---|---|
-| UI | SwiftUI |
-| Minimum OS | iOS / iPadOS 27 (the project's current deployment target) |
-| Devices | iPad first, iPhone supported. The project also targets visionOS; treat it as best effort. |
-| Persistence | SwiftData |
-| Sync | SwiftData's CloudKit integration, private database. No sign-in screen; the user's iCloud account is the identity. |
-| Pattern files and images | Stored as `Data` with `@Attribute(.externalStorage)` so CloudKit syncs them as assets |
-| PDF viewing and rendering | PDFKit (`PDFView` for viewing, `PDFPage.thumbnail(of:for:)` for covers and page images, `PDFPage.string` for text) |
-| Picking files and photos | `.fileImporter` for PDFs and images, `PhotosPicker` for the photo library, camera via `UIImagePickerController` wrapper |
-| Fonts | DM Serif Display for headings, Nunito Sans for body, bundled in the app (both are under the SIL Open Font License) |
+| Concern                   | Choice                                                                                                                  |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| UI                        | SwiftUI                                                                                                                 |
+| Minimum OS                | iOS / iPadOS 27 (the project's current deployment target)                                                               |
+| Devices                   | iPad first                                                                                                              |
+| Persistence               | SwiftData                                                                                                               |
+| Sync                      | None in the first release, which stores data on the device only. A later release adds SwiftData's CloudKit integration with the private database. No sign-in screen; the user's iCloud account is the identity. |
+| Pattern files and images  | Stored as `Data` with `@Attribute(.externalStorage)` so CloudKit syncs them as assets                                   |
+| PDF viewing and rendering | PDFKit (`PDFView` for viewing, `PDFPage.thumbnail(of:for:)` for covers and page images, `PDFPage.string` for text)      |
+| Picking files and photos  | `.fileImporter` for PDFs and images, `PhotosPicker` for the photo library, camera via `UIImagePickerController` wrapper |
+| Fonts                     | DM Serif Display for headings, Nunito Sans for body, bundled in the app (both are under the SIL Open Font License)      |
 
-The web app's backend plan (custom auth, database, blob storage, server functions, GitHub Pages) does not carry over. SwiftData and CloudKit cover storage, sync and files.
+The web app's backend plan (custom auth, database, blob storage, server functions, GitHub Pages) does not carry over. SwiftData covers storage and files. CloudKit adds sync in a later release.
 
 ## Navigation
 
@@ -53,61 +53,61 @@ Editors open as sheets. Destructive actions confirm with `.confirmationDialog`. 
 
 ## Data model
 
-Three SwiftData models. CloudKit requires every stored property to be optional or have a default, and does not support unique constraints, so the app enforces uniqueness itself.
+Three SwiftData models. CloudKit requires every stored property to be optional or have a default, and does not support unique constraints, so the app enforces uniqueness itself. The first release doesn't sync, but the models follow these rules from the start so that turning on sync later doesn't require changing them.
 
 ### `Pattern`
 
-| Property | Type | Notes |
-|---|---|---|
-| `id` | `UUID` | |
-| `name` | `String` | Required, non-empty after trimming |
-| `designer` | `String` | May be empty. Drives folder grouping. |
-| `status` | `PatternStatus` | Default `.notStarted` |
-| `mesh` | `Mesh?` | `10`, `13`, `18`, `other`, or unset |
-| `notes` | `String` | Free text |
-| `threads` | `[PatternThread]` | Codable value array, ordered as the user entered them |
-| `fileData` | `Data?` | External storage. The pattern PDF or photo. |
-| `fileName` | `String` | |
-| `fileType` | `UTType?` (stored as identifier string) | |
-| `coverData` | `Data?` | External storage. JPEG. |
-| `created` | `Date` | |
+| Property    | Type                                    | Notes                                                 |
+| ----------- | --------------------------------------- | ----------------------------------------------------- |
+| `id`        | `UUID`                                  |                                                       |
+| `name`      | `String`                                | Required, non-empty after trimming                    |
+| `designer`  | `String`                                | May be empty. Drives folder grouping.                 |
+| `status`    | `PatternStatus`                         | Default `.notStarted`                                 |
+| `mesh`      | `Mesh?`                                 | `10`, `13`, `18`, `other`, or unset                   |
+| `notes`     | `String`                                | Free text                                             |
+| `threads`   | `[PatternThread]`                       | Codable value array, ordered as the user entered them |
+| `fileData`  | `Data?`                                 | External storage. The pattern PDF or photo.           |
+| `fileName`  | `String`                                |                                                       |
+| `fileType`  | `UTType?` (stored as identifier string) |                                                       |
+| `coverData` | `Data?`                                 | External storage. JPEG.                               |
+| `created`   | `Date`                                  |                                                       |
 
 `PatternThread` is a struct: `brand: String`, `code: String`, `name: String`, `qty: Int` (at least 1).
 
 ### `PatternStatus`
 
-| Case | Raw value (matches web data) | Label shown in the UI |
-|---|---|---|
-| `wishlist` | `Wishlist` | Wishlist |
-| `notStarted` | `Not started` | Not started |
-| `inProgress` | `In progress` | Stitching |
-| `needsFinishing` | `Needs finishing` | Stitched, needs finishing |
-| `finished` | `Finished` | Finished |
+| Case             | Raw value (matches web data) | Label shown in the UI     |
+| ---------------- | ---------------------------- | ------------------------- |
+| `wishlist`       | `Wishlist`                   | Wishlist                  |
+| `notStarted`     | `Not started`                | Not started               |
+| `inProgress`     | `In progress`                | Stitching                 |
+| `needsFinishing` | `Needs finishing`            | Stitched, needs finishing |
+| `finished`       | `Finished`                   | Finished                  |
 
 Sort order wherever patterns are listed by status: Stitching, Needs finishing, Not started, Wishlist, Finished. Ties sort by name.
 
 ### `StashThread`
 
-| Property | Type | Notes |
-|---|---|---|
-| `id` | `UUID` | |
-| `brand` | `String` | Required |
-| `code` | `String` | Required. The color number, kept as text (leading zeros and letters matter). |
-| `name` | `String` | Color name |
-| `color` | `String` | Swatch as `#rrggbb`, default `#cccccc` when unknown |
-| `qty` | `Int` | Cards or skeins on hand, at least 0 |
-| `created` | `Date` | |
+| Property  | Type     | Notes                                                                        |
+| --------- | -------- | ---------------------------------------------------------------------------- |
+| `id`      | `UUID`   |                                                                              |
+| `brand`   | `String` | Required                                                                     |
+| `code`    | `String` | Required. The color number, kept as text (leading zeros and letters matter). |
+| `name`    | `String` | Color name                                                                   |
+| `color`   | `String` | Swatch as `#rrggbb`, default `#cccccc` when unknown                          |
+| `qty`     | `Int`    | Cards or skeins on hand, at least 0                                          |
+| `created` | `Date`   |                                                                              |
 
 ### `FolderStyle`
 
 Optional styling for a designer folder.
 
-| Property | Type | Notes |
-|---|---|---|
-| `key` | `String` | Lowercased, trimmed designer name. Empty string means "No designer". |
-| `imageData` | `Data?` | External storage |
-| `fit` | `contain` or `cover` | |
-| `background` | `String` | `#rrggbb` |
+| Property     | Type                 | Notes                                                                |
+| ------------ | -------------------- | -------------------------------------------------------------------- |
+| `key`        | `String`             | Lowercased, trimmed designer name. Empty string means "No designer". |
+| `imageData`  | `Data?`              | External storage                                                     |
+| `fit`        | `contain` or `cover` |                                                                      |
+| `background` | `String`             | `#rrggbb`                                                            |
 
 ### Thread matching
 
@@ -244,18 +244,18 @@ The web app's design notes: warm and tidy, like a crafter's workroom, calm enoug
 
 Define these as named colors in `Assets.xcassets` with light and dark variants:
 
-| Name | Light | Dark |
-|---|---|---|
-| Background | `#fbfaf8` | `#17121a` |
-| Ink | `#221b26` | `#f1eaf0` |
-| Mute | `#6d6372` | `#b5a9b8` |
-| Plum | `#7a1f4f` | `#5a1739` |
-| Blush | `#f6e4ec` | `#2c1d27` |
-| Card | `#ffffff` | `#221a25` |
-| Line | `#e7dde3` | `#3a2e3b` |
+| Name          | Light     | Dark      |
+| ------------- | --------- | --------- |
+| Background    | `#fbfaf8` | `#17121a` |
+| Ink           | `#221b26` | `#f1eaf0` |
+| Mute          | `#6d6372` | `#b5a9b8` |
+| Plum          | `#7a1f4f` | `#5a1739` |
+| Blush         | `#f6e4ec` | `#2c1d27` |
+| Card          | `#ffffff` | `#221a25` |
+| Line          | `#e7dde3` | `#3a2e3b` |
 | Teal (accent) | `#0c7480` | `#4cc3cf` |
-| Warn | `#b23a12` | `#ff9a73` |
-| OK | `#1f7a4c` | `#6fd3a0` |
+| Warn          | `#b23a12` | `#ff9a73` |
+| OK            | `#1f7a4c` | `#6fd3a0` |
 
 Use Dynamic Type through `Font.custom(_:size:relativeTo:)`, keep tap targets at least 44 points, label icon-only buttons for VoiceOver, and respect Reduce Motion for the toast animation.
 
@@ -268,4 +268,3 @@ How to get the export out of claude.ai is still open.
 ## Open decisions
 
 1. Whether to keep visionOS in the supported destinations.
-2. Whether CloudKit sync is in the first release or added after the local-only version works.

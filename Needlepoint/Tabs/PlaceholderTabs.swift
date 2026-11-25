@@ -37,16 +37,6 @@ struct ReadyTab: View {
     }
 }
 
-struct StashTab: View {
-    var body: some View {
-        TabScreen(title: AppTab.stash.title) {
-            EmptyStateView(
-                title: "No threads in your stash yet",
-                message: "Add them one at a time, or paste a whole list at once.")
-        }
-    }
-}
-
 struct ShoppingTab: View {
     var body: some View {
         TabScreen(title: AppTab.shopping.title) {

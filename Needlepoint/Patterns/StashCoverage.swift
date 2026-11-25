@@ -1,9 +1,18 @@
 import Foundation
 
 /// Whether the stash holds enough of one pattern thread.
-enum ThreadSupply: Equatable {
+nonisolated enum ThreadSupply: Equatable, Sendable {
     case covered(have: Int)
     case short(more: Int, have: Int)
+
+    /// The status line under a thread row in the pattern editor.
+    var label: String {
+        switch self {
+        case .covered(let have): "In stash (\(have))"
+        case .short(let more, 0): "Need \(more) more"
+        case .short(let more, let have): "Need \(more) more, you have \(have)"
+        }
+    }
 }
 
 /// The stash's quantities by thread key, for checking patterns against it.

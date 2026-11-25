@@ -39,7 +39,10 @@ struct ThreadEditor: View {
                         .onSubmit { focus = .code }
                         .accessibilityIdentifier("threadEditor.brand")
                     if !brandSuggestions.isEmpty {
-                        suggestionRow
+                        SuggestionChips(suggestions: brandSuggestions) { brand in
+                            draft.brand = brand
+                            focus = .code
+                        }
                     }
                     TextField("Color number", text: $draft.code)
                         .textInputAutocapitalization(.characters)
@@ -78,22 +81,6 @@ struct ThreadEditor: View {
             }
             .onAppear { focus = .brand }
         }
-    }
-
-    private var suggestionRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(brandSuggestions, id: \.self) { brand in
-                    Button(brand) {
-                        draft.brand = brand
-                        focus = .code
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(Color.plum)
-                }
-            }
-        }
-        .frame(minHeight: 44)
     }
 
     private var quantityRow: some View {

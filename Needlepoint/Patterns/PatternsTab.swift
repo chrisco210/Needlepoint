@@ -14,6 +14,7 @@ struct PatternsTab: View {
     @AppStorage("patternsMode") private var mode: PatternsMode = .folders
     @State private var query = ""
     @State private var statusFilter: PatternStatus?
+    @State private var editorRequest: PatternEditorRequest?
 
     private let columns = [GridItem(.adaptive(minimum: 220), spacing: 16)]
 
@@ -29,7 +30,9 @@ struct PatternsTab: View {
                     if patterns.isEmpty {
                         EmptyStateView(
                             title: "Your pattern library is empty",
-                            message: "Add your first canvas or chart. Upload the PDF or a photo, then list the threads it calls for.")
+                            message: "Add your first canvas or chart. Upload the PDF or a photo, then list the threads it calls for.") {
+                            Button("Add pattern") { editorRequest = .new(designer: "") }
+                        }
                     } else {
                         controls
                         content
@@ -42,9 +45,19 @@ struct PatternsTab: View {
             }
             .background(Color.background)
             .navigationTitle(AppTab.patterns.title)
-            .searchable(text: $query, prompt: "Search patterns")
+            // Pinned under the navigation bar, because the default placement on
+            // iPad can collapse search into a toolbar button.
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search patterns")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Add pattern", systemImage: "plus") { editorRequest = .new(designer: "") }
+                }
+            }
             .navigationDestination(for: String.self) { key in
-                FolderScreen(key: key, statusFilter: statusFilter)
+                FolderScreen(key: key, statusFilter: statusFilter) { editorRequest = $0 }
+            }
+            .sheet(item: $editorRequest) { request in
+                PatternEditor(request: request)
             }
         }
     }
@@ -78,7 +91,8 @@ struct PatternsTab: View {
             PatternGrid(
                 patterns: PatternFilter.apply(patterns, query: query, status: statusFilter),
                 coverage: StashCoverage(stash: stash),
-                emptyMessage: isSearching ? "No patterns match that search." : "No patterns with that status.")
+                emptyMessage: isSearching ? "No patterns match that search." : "No patterns with that status.",
+                onOpen: { editorRequest = .edit($0) })
         }
     }
 
@@ -105,6 +119,7 @@ struct PatternsTab: View {
 struct FolderScreen: View {
     let key: String
     let statusFilter: PatternStatus?
+    let openEditor: (PatternEditorRequest) -> Void
 
     @Query private var patterns: [Pattern]
     @Query private var stash: [StashThread]
@@ -116,7 +131,8 @@ struct FolderScreen: View {
             PatternGrid(
                 patterns: PatternFilter.apply(inFolder, query: "", status: statusFilter),
                 coverage: StashCoverage(stash: stash),
-                emptyMessage: "No patterns in this folder match.")
+                emptyMessage: "No patterns in this folder match.",
+                onOpen: { openEditor(.edit($0)) })
                 .padding(.horizontal)
                 .padding(.vertical, 8)
                 .frame(maxWidth: 1240)
@@ -124,6 +140,15 @@ struct FolderScreen: View {
         }
         .background(Color.background)
         .navigationTitle(name)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                // The "No designer" folder's key is empty, so its new patterns get no designer.
+                Button("Add to this folder", systemImage: "plus") {
+                    openEditor(.new(designer: key.isEmpty ? "" : name))
+                }
+                .labelStyle(.titleAndIcon)
+            }
+        }
     }
 }
 
@@ -132,6 +157,7 @@ struct PatternGrid: View {
     let patterns: [Pattern]
     let coverage: StashCoverage
     let emptyMessage: String
+    let onOpen: (Pattern) -> Void
 
     var body: some View {
         if patterns.isEmpty {
@@ -139,7 +165,12 @@ struct PatternGrid: View {
         } else {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 16)], spacing: 16) {
                 ForEach(patterns) { pattern in
+                    // A tap gesture instead of a Button keeps the card's own
+                    // accessibility label and identifier.
                     PatternCard(pattern: pattern, coverage: coverage)
+                        .contentShape(Rectangle())
+                        .onTapGesture { onOpen(pattern) }
+                        .accessibilityAddTraits(.isButton)
                 }
             }
         }

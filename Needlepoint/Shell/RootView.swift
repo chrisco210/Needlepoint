@@ -34,5 +34,5 @@ struct RootView: View {
 
 #Preview {
     RootView()
-        .modelContainer(for: StashThread.self, inMemory: true)
+        .modelContainer(for: [StashThread.self, Pattern.self, FolderStyle.self], inMemory: true)
 }

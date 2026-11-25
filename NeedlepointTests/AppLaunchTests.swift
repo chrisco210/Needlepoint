@@ -30,6 +30,15 @@ struct AppLaunchTests {
         }
     }
 
+    @Test func containerHoldsEveryModel() throws {
+        let container = try AppLaunch(arguments: ["Needlepoint", "-ui-testing"]).makeContainer()
+        let context = container.mainContext
+        context.insert(Pattern(name: "Strawberry"))
+        context.insert(FolderStyle(key: ""))
+        #expect(try context.fetch(FetchDescriptor<Pattern>()).count == 1)
+        #expect(try context.fetch(FetchDescriptor<FolderStyle>()).count == 1)
+    }
+
     /// Seeding writes data, so it must never run against the user's real store.
     @Test func seedStashIsIgnoredWithoutUITesting() {
         let launch = AppLaunch(arguments: ["Needlepoint", "-ui-testing-seed-stash"])

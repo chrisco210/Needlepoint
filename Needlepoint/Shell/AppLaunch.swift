@@ -20,7 +20,7 @@ struct AppLaunch {
 
     func makeContainer() throws -> ModelContainer {
         let container = try ModelContainer(
-            for: StashThread.self,
+            for: StashThread.self, Pattern.self, FolderStyle.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: usesInMemoryStore))
         if seedsStash {
             let context = container.mainContext

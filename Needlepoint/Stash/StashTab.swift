@@ -190,3 +190,11 @@ private struct PasteListSheet: View {
         dismiss()
     }
 }
+
+#Preview(traits: .sampleLibrary) {
+    StashTab()
+}
+
+#Preview("Empty", traits: .emptyLibrary) {
+    StashTab()
+}

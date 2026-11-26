@@ -106,3 +106,7 @@ private struct ShoppingRow: View {
         [line.code, line.name.isEmpty ? nil : line.name, line.detail].compactMap(\.self).joined(separator: ", ")
     }
 }
+
+#Preview(traits: .sampleLibrary) {
+    ShoppingTab()
+}

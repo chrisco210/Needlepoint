@@ -109,3 +109,8 @@ private struct CanvasMesh: View {
         .accessibilityHidden(true)
     }
 }
+
+#Preview(traits: .sampleLibrary) {
+    SummaryHeader()
+        .padding()
+}

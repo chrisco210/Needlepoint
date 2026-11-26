@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 import UIKit
 
@@ -118,4 +119,24 @@ struct StatusPill: View {
         case .wishlist, .notStarted: .ink
         }
     }
+}
+
+#Preview(traits: .sampleLibrary) {
+    @Previewable @Query var patterns: [Pattern]
+    @Previewable @Query var stash: [StashThread]
+    ScrollView {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 16)], spacing: 16) {
+            ForEach(patterns) { pattern in
+                PatternCard(pattern: pattern, coverage: StashCoverage(stash: stash))
+            }
+        }
+        .padding()
+    }
+}
+
+#Preview("Status pills") {
+    VStack(alignment: .leading, spacing: 8) {
+        ForEach(PatternStatus.allCases, id: \.self) { StatusPill(status: $0) }
+    }
+    .padding()
 }

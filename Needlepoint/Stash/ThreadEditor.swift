@@ -168,3 +168,14 @@ struct ThreadEditor: View {
         }
     }
 }
+
+#Preview("Add", traits: .sampleLibrary) {
+    ThreadEditor(request: .add)
+}
+
+#Preview("Edit", traits: .sampleLibrary) {
+    @Previewable @Query var stash: [StashThread]
+    if let thread = stash.first {
+        ThreadEditor(request: .edit(thread))
+    }
+}

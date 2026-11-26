@@ -89,3 +89,7 @@ struct WIPTab: View {
         toasts.show(context.changeStatus(of: pattern, to: status))
     }
 }
+
+#Preview(traits: .sampleLibrary) {
+    WIPTab(showReady: {})
+}

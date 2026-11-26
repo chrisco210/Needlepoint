@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 import UIKit
 
@@ -119,4 +120,15 @@ private struct FolderArt: View {
             }
             .clipped()
     }
+}
+
+#Preview(traits: .sampleLibrary) {
+    @Previewable @Query var patterns: [Pattern]
+    HStack(alignment: .top, spacing: 16) {
+        ForEach(PatternFolders.make(from: patterns, statusFilter: nil)) { folder in
+            FolderTile(folder: folder, style: nil)
+                .frame(width: 240)
+        }
+    }
+    .padding()
 }

@@ -40,7 +40,15 @@ struct RootView: View {
     }
 }
 
-#Preview {
+#Preview("Sample library", traits: .sampleLibrary) {
     RootView()
-        .modelContainer(for: [StashThread.self, Pattern.self, FolderStyle.self], inMemory: true)
+}
+
+#Preview("Dark", traits: .sampleLibrary) {
+    RootView()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Empty", traits: .emptyLibrary) {
+    RootView()
 }

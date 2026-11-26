@@ -309,6 +309,20 @@ xcodebuild test -scheme Needlepoint -destination "$DEST" "${NOCLONE[@]}"
 
 Add `-quiet` to print only warnings, errors and the result.
 
+## Previews
+
+Open a view's file and press ⌥⌘↩ to show the canvas. The tabs, editors, cards, folder tiles and the summary header have previews. `RootView` has light, dark and empty versions.
+
+Views that use `@Query` or show toasts need a model container and a `ToastCenter`. The `.sampleLibrary` preview trait in `Shell/PreviewSupport.swift` provides both, filled with the same data UI tests seed (`SampleData`). `.emptyLibrary` provides an empty store for the empty states.
+
+```swift
+#Preview(traits: .sampleLibrary) {
+    StashTab()
+}
+```
+
+To preview one model object, query for it with `@Previewable @Query`, as the "Editing Strawberry" preview in `PatternEditor.swift` does.
+
 ## Open decisions
 
 1. Whether to keep visionOS in the supported destinations.

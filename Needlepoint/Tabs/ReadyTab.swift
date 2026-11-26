@@ -91,3 +91,7 @@ struct ReadyTab: View {
         editorRequest = .edit(pattern)
     }
 }
+
+#Preview(traits: .sampleLibrary) {
+    ReadyTab()
+}

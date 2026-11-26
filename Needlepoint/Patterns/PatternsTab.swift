@@ -266,3 +266,11 @@ private struct StatusFilterMenu: View {
         .accessibilityIdentifier("patterns.statusFilter")
     }
 }
+
+#Preview(traits: .sampleLibrary) {
+    PatternsTab()
+}
+
+#Preview("Empty", traits: .emptyLibrary) {
+    PatternsTab()
+}

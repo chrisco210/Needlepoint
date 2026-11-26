@@ -451,3 +451,14 @@ private struct PDFViewer: View {
         }
     }
 }
+
+#Preview("New pattern", traits: .sampleLibrary) {
+    PatternEditor(request: .new(designer: ""))
+}
+
+#Preview("Editing Strawberry", traits: .sampleLibrary) {
+    @Previewable @Query var patterns: [Pattern]
+    if let strawberry = patterns.first(where: { $0.name == "Strawberry" }) {
+        PatternEditor(request: .edit(strawberry))
+    }
+}

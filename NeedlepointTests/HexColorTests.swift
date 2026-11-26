@@ -30,3 +30,34 @@ struct HexColorTests {
         #expect(HexColor(red: original.red, green: original.green, blue: original.blue) == original)
     }
 }
+
+struct HexColorContrastTests {
+    @Test func blackOnWhiteIsTwentyOneToOne() throws {
+        let black = try #require(HexColor("#000000"))
+        let white = try #require(HexColor("#ffffff"))
+        #expect(abs(black.contrastRatio(with: white) - 21) < 0.01)
+        #expect(abs(white.contrastRatio(with: black) - 21) < 0.01)
+    }
+
+    @Test func aColorHasNoContrastWithItself() throws {
+        let plum = try #require(HexColor("#7a1f4f"))
+        #expect(abs(plum.contrastRatio(with: plum) - 1) < 0.0001)
+    }
+
+    /// WCAG gives #777777 on white about 4.48 to 1.
+    @Test func matchesTheWCAGFormula() throws {
+        let gray = try #require(HexColor("#777777"))
+        let white = try #require(HexColor("#ffffff"))
+        #expect(abs(gray.contrastRatio(with: white) - 4.48) < 0.01)
+    }
+
+    @Test(arguments: ["#7a1f4f", "#221b26", "#000000", "#0c7480"])
+    func darkColors(hex: String) throws {
+        #expect(try #require(HexColor(hex)).isDark)
+    }
+
+    @Test(arguments: ["#ffffff", "#f6e4ec", "#fbf3e2", "#e3eef6", "#cccccc"])
+    func lightColors(hex: String) throws {
+        #expect(try !#require(HexColor(hex)).isDark)
+    }
+}

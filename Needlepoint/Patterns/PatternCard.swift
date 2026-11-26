@@ -105,9 +105,9 @@ struct StatusPill: View {
 
     private var background: Color {
         switch status {
-        case .inProgress: .accentColor
-        case .needsFinishing: .plum
-        case .finished: Color("OK")
+        case .inProgress: .accentFill
+        case .needsFinishing: .plumFill
+        case .finished: Color("OKFill")
         case .wishlist, .notStarted: .blush
         }
     }

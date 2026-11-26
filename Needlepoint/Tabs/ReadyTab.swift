@@ -48,6 +48,7 @@ struct ReadyTab: View {
                                                 toasts.show(context.changeStatus(of: pattern, to: .inProgress))
                                             }
                                             .buttonStyle(.borderedProminent)
+                                            .tint(.accentFill)
                                         }
                                     }
                                 }

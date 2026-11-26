@@ -71,7 +71,7 @@ struct StashTab: View {
                             StashRow(thread: thread) { editorRequest = .edit(thread) }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button("Remove", systemImage: "trash") { pendingDelete = thread }
-                                        .tint(Color.warn)
+                                        .tint(.warnFill)
                                 }
                         }
                     } header: {

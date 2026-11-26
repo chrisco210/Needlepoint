@@ -21,6 +21,7 @@ struct EmptyStateView<Actions: View>: View {
                 .frame(maxWidth: 460)
             actions
                 .buttonStyle(.borderedProminent)
+                .tint(.accentFill)
                 .controlSize(.large)
                 .padding(.top, 8)
         }

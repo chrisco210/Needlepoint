@@ -44,7 +44,7 @@ enum FolderRename {
 
 /// The folder image editor's form state.
 struct FolderImageDraft {
-    struct Background {
+    nonisolated struct Background: Sendable {
         /// Read by VoiceOver, since the swatches have no text.
         let name: String
         let hex: String
@@ -56,7 +56,7 @@ struct FolderImageDraft {
         var message: String { "That image couldn't be used. Try a PNG or JPEG." }
     }
 
-    static let backgrounds = [
+    nonisolated static let backgrounds = [
         Background(name: "White", hex: "#ffffff"),
         Background(name: "Blush", hex: "#f6e4ec"),
         Background(name: "Cream", hex: "#fbf3e2"),

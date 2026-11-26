@@ -34,7 +34,7 @@ struct SummaryHeader: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             ZStack {
-                Color.plum
+                Color.plumFill
                 CanvasMesh().opacity(0.16)
             }
         }

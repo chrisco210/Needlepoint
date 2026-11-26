@@ -113,7 +113,7 @@ struct FolderImageEditor: View {
                         .padding(draft.fit == .contain ? 12 : 0)
                 } else {
                     Text("No image")
-                        .foregroundStyle(isDark(draft.background) ? .white : Color.mute)
+                        .foregroundStyle(noImageColor)
                 }
             }
             .aspectRatio(4 / 3, contentMode: .fit)
@@ -142,10 +142,10 @@ struct FolderImageEditor: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
-    /// The web app showed white "No image" text on the plum and ink backgrounds.
-    private func isDark(_ hex: String) -> Bool {
-        guard let color = HexColor(hex) else { return false }
-        return 0.299 * color.red + 0.587 * color.green + 0.114 * color.blue < 0.5
+    /// The background is a fixed color, so the label follows it, not dark mode.
+    private var noImageColor: Color {
+        guard let background = HexColor(draft.background) else { return Color.mute }
+        return Color(FolderGlyphColors(background: background).label)
     }
 
     private func setImage(_ data: Data, type: UTType) {

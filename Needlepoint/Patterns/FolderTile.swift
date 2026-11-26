@@ -63,18 +63,31 @@ private struct FolderArt: View {
         } else {
             ZStack {
                 // A background chosen in "Edit folder image" shows even without an image.
-                style.map { Color(swatch: $0.background) } ?? Color.blush
+                glyphBackground
                 Image(systemName: "folder.fill")
                     .font(.system(size: 64))
-                    .foregroundStyle(Color.plum)
+                    .foregroundStyle(glyphColor)
                 if let initial = folder.initial {
+                    // Printed in the background color, cut out of the glyph.
                     Text(initial)
                         .font(.heading(26, relativeTo: .title2))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(glyphBackground)
                         .offset(y: 5)
                 }
             }
         }
+    }
+
+    /// A background chosen in "Edit folder image" is a fixed color, so the
+    /// glyph follows it. Without one, the tile uses blush and plum, which
+    /// follow dark mode.
+    private var glyphBackground: Color {
+        style.map { Color(swatch: $0.background) } ?? Color.blush
+    }
+
+    private var glyphColor: Color {
+        guard let style, let background = HexColor(style.background) else { return Color.plum }
+        return Color(FolderGlyphColors(background: background).glyph)
     }
 
     @ViewBuilder

@@ -41,6 +41,7 @@ struct WIPTab: View {
                                         }
                                         Button("Done stitching") { setStatus(pattern, .needsFinishing) }
                                             .buttonStyle(.borderedProminent)
+                                            .tint(.accentFill)
                                     }
                                 }
                             }
@@ -58,6 +59,7 @@ struct WIPTab: View {
                                         HStack {
                                             Button("Mark finished") { setStatus(pattern, .finished) }
                                                 .buttonStyle(.borderedProminent)
+                                                .tint(.accentFill)
                                             Button("Back to stitching") { setStatus(pattern, .inProgress) }
                                                 .buttonStyle(.bordered)
                                         }
